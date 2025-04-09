@@ -116,7 +116,7 @@ async function selectWorkspaceOrCommon(
             if (selected.label === PackageManagement.workspaceDependencies) {
                 return await selectFromInstallableToInstall(installable);
             } else if (selected.label === PackageManagement.commonPackages) {
-                return await selectFromCommonPackagesToInstall(common, installed);
+                return await selectFromCommonPackagesToInstall(common);
             } else {
                 traceInfo('Package Installer: user selected skip package installation');
                 return undefined;
@@ -135,7 +135,6 @@ export async function getWorkspacePackagesToInstall(
     api: PythonEnvironmentApi,
     options?: PackageInstallOptions,
     project?: PythonProject[],
-    environment?: PythonEnvironment,
 ): Promise<string[] | undefined> {
     const installable = (await getProjectInstallable(api, project)) ?? [];
     const common = await getCommonPackages();
