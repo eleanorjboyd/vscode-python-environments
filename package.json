@@ -374,22 +374,12 @@
                     "when": "view == env-managers && viewItem == python-package"
                 },
                 {
-                    "command": "python-envs.packages",
-                    "group": "inline",
-                    "when": "view == python-projects && viewItem == python-env"
-                },
-                {
                     "command": "python-envs.copyEnvPath",
                     "group": "inline",
                     "when": "view == python-projects && viewItem == python-env"
                 },
                 {
                     "command": "python-envs.remove",
-                    "when": "view == python-projects && viewItem == python-env"
-                },
-                {
-                    "command": "python-envs.refreshPackages",
-                    "group": "inline",
                     "when": "view == python-projects && viewItem == python-env"
                 },
                 {
