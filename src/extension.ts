@@ -144,10 +144,16 @@ async function collectEnvironmentInfo(
 
         // Current settings (non-sensitive)
         const config = workspace.getConfiguration('python-envs');
+        const pyConfig = workspace.getConfiguration('python');
         info.push('\nExtension Settings:');
         info.push(`  Default Environment Manager: ${config.get('defaultEnvManager')}`);
         info.push(`  Default Package Manager: ${config.get('defaultPackageManager')}`);
-        info.push(`  Terminal Auto Activation: ${config.get('terminal.autoActivationType')}`);
+        const pyenvAct = config.get('terminal.autoActivationType');
+        const pythonAct = pyConfig.get('terminal.activateEnvironment');
+        const bothAct = pyenvAct && pythonAct ? 'true' : 'false';
+        info.push(
+            `Auto Activation set to ${bothAct} because py-env.terminal.autoActivationType is ${pyenvAct} and python.terminal.activateEnvironment is ${pythonAct}\n`,
+        );
     } catch (err) {
         info.push(`\nError collecting environment information: ${err}`);
     }

@@ -3,7 +3,7 @@ import * as path from 'path';
 import { Disposable, EventEmitter, ProgressLocation, Terminal, TerminalOptions, Uri } from 'vscode';
 import { PythonEnvironment, PythonEnvironmentApi, PythonProject, PythonTerminalCreateOptions } from '../../api';
 import { ActivationStrings } from '../../common/localize';
-import { traceInfo, traceVerbose } from '../../common/logging';
+import { traceInfo, traceVerbose, traceWarn } from '../../common/logging';
 import {
     createTerminal,
     onDidChangeWindowState,
@@ -235,7 +235,20 @@ export class TerminalManagerImpl implements TerminalManager {
                 traceVerbose(`Environment ${environment.environmentPath.fsPath} is not activatable`);
             }
         } else if (actType === ACT_TYPE_OFF) {
-            traceInfo(`"python-envs.terminal.autoActivationType" is set to "${actType}", skipping auto activation`);
+            // Check both settings before skipping activation
+            const pyEnvConfig = getConfiguration('python-envs');
+            const pythonConfig = getConfiguration('python');
+            const pyEnvAct = pyEnvConfig.get('terminal.autoActivationType');
+            const pythonAct = pythonConfig.get('terminal.activateEnvironment');
+            if (pythonAct === false) {
+                traceInfo(
+                    `Auto activation skipped: "python-envs.terminal.autoActivationType" is "${pyEnvAct}" and "python.terminal.activateEnvironment" is "${pythonAct}".`,
+                );
+            } else {
+                traceWarn(
+                    `Auto activation requires both settings to align: "python-envs.terminal.autoActivationType" and "python.terminal.activateEnvironment". If you don't want auto activation, ensure "python.terminal.activateEnvironment" is set to 'false'.`,
+                );
+            }
         } else if (actType === ACT_TYPE_SHELL) {
             traceInfo(
                 `"python-envs.terminal.autoActivationType" is set to "${actType}", terminal should be activated by shell startup script`,
