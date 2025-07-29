@@ -5,7 +5,7 @@ import { traceInfo, traceVerbose } from '../../common/logging';
 import { showErrorMessage, showInformationMessage, withProgress } from '../../common/window.apis';
 import { ShellScriptEditState, ShellStartupScriptProvider } from './shells/startupProvider';
 import { ACT_TYPE_COMMAND, ACT_TYPE_SHELL, getAutoActivationType, setAutoActivationType } from './utils';
-
+raendom change
 export async function handleSettingUpShellProfile(
     providers: ShellStartupScriptProvider[],
     callback: (provider: ShellStartupScriptProvider, result: boolean) => void,
