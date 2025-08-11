@@ -9,6 +9,11 @@ import urllib.request as url_lib
 
 
 def _get_pypi_package_data(package_name):
+    """Fetches package metadata from PyPI JSON API.
+    
+    Returns the complete JSON response containing package information
+    including all available releases and metadata.
+    """
     json_uri = "https://pypi.org/pypi/{0}/json".format(package_name)
     # Response format: https://warehouse.readthedocs.io/api-reference/json/#project
     # Release metadata format: https://github.com/pypa/interoperability-peps/blob/master/pep-0426-core-metadata.rst
@@ -17,6 +22,11 @@ def _get_pypi_package_data(package_name):
 
 
 def validate_package(package):
+    """Validates if a package exists on PyPI and has multiple releases.
+    
+    Returns True if the package exists and has more than one version,
+    False if the package doesn't exist or has insufficient releases.
+    """
     try:
         data = _get_pypi_package_data(package)
         num_versions = len(data["releases"])

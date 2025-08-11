@@ -374,6 +374,9 @@ async function getNamedCondaPythonInfo(
     };
 }
 
+/**
+ * Creates environment information for a prefix-based (location not name based) conda environment.
+ */
 async function getPrefixesCondaPythonInfo(
     prefix: string,
     executable: string,
@@ -468,6 +471,10 @@ async function getPrefixesCondaPythonInfo(
     };
 }
 
+/**
+ * Creates environment information for a conda environment that doesn't have Python installed.
+ * These environments are marked with a special version 'no-python' and a stop icon to indicate they are not fully functional Python environments.
+ */
 function getCondaWithoutPython(name: string, prefix: string, conda: string): PythonEnvironmentInfo {
     return {
         name: name,
@@ -487,6 +494,22 @@ function getCondaWithoutPython(name: string, prefix: string, conda: string): Pyt
     };
 }
 
+/**
+ * Converts a native environment info object (PET output) into a Python environment object.
+ * This function handles different types of conda environments:
+ * - No-Python conda environments (missing prefix/executable/version)
+ * - Base conda environments (name === 'base')
+ * - Prefix-based environments (not in conda prefixes)
+ * - Named environments (in conda prefixes)
+ *
+ * @param e - The native environment information
+ * @param api - Python environment API for creating environment items
+ * @param manager - Environment manager instance
+ * @param log - Log output channel for recording environment discovery
+ * @param conda - Path to the conda executable
+ * @param condaPrefixes - List of known conda environment prefix paths
+ * @returns A promise that resolves to a Python environment or undefined if conversion fails
+ */
 async function nativeToPythonEnv(
     e: NativeEnvInfo,
     api: PythonEnvironmentApi,

@@ -62,6 +62,12 @@ def parse_version(version: str) -> Tuple[str, str, str, str]:
 
 
 def main(package_json: pathlib.Path, argv: Sequence[str]) -> None:
+    """Updates package.json version based on release type and build configuration.
+    
+    Handles version validation (even minor for release, odd for pre-release),
+    applies custom build IDs or auto-generated micro versions, and manages
+    version suffixes for publishing workflows.
+    """
     parser = build_arg_parse()
     args = parser.parse_args(argv)
 
