@@ -33,6 +33,10 @@ import {
 } from './pipenvUtils';
 
 export class PipenvManager implements EnvironmentManager {
+    private collection: PythonEnvironment[] = [];
+    private fsPathToEnv: Map<string, PythonEnvironment> = new Map();
+    private globalEnv: PythonEnvironment | undefined;
+
     private readonly _onDidChangeEnvironment = new EventEmitter<DidChangeEnvironmentEventArgs>();
     public readonly onDidChangeEnvironment = this._onDidChangeEnvironment.event;
 
