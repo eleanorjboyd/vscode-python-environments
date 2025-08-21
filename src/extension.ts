@@ -563,7 +563,7 @@ export async function activate(context: ExtensionContext): Promise<PythonEnviron
             registerSystemPythonFeatures(nativeFinder, context.subscriptions, outputChannel, sysMgr),
             registerCondaFeatures(nativeFinder, context.subscriptions, outputChannel),
             registerPyenvFeatures(nativeFinder, context.subscriptions),
-            registerPipenvFeatures(nativeFinder, context.subscriptions),
+            registerPipenvFeatures(nativeFinder, context.subscriptions, outputChannel),
             registerPoetryFeatures(nativeFinder, context.subscriptions, outputChannel),
             shellStartupVarsMgr.initialize(),
         ]);
