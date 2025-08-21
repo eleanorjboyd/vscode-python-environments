@@ -1,7 +1,8 @@
 // Utility functions for Pipenv environment management
 
+import * as ch from 'child_process';
 import * as path from 'path';
-import { Uri } from 'vscode';
+import { CancellationError, CancellationToken, LogOutputChannel, Uri } from 'vscode';
 import which from 'which';
 import {
     EnvironmentManager,
@@ -241,4 +242,73 @@ export async function setPipenvForWorkspaces(fsPath: string[], envPath: string |
 
 export class PipenvUtils {
     // Add static helper methods for pipenv operations here
+}
+
+export interface PipenvPackage {
+    name: string;
+    displayName: string;
+    version: string;
+    location?: string;
+}
+
+export async function runPipenv(
+    pipenvPath: string,
+    args: string[],
+    cwd?: string,
+    log?: LogOutputChannel,
+    token?: CancellationToken,
+): Promise<string> {
+    log?.info(`Running: ${pipenvPath} ${args.join(' ')}`);
+    return new Promise<string>((resolve, reject) => {
+        const proc = ch.spawn(pipenvPath, args, { cwd: cwd });
+        token?.onCancellationRequested(() => {
+            proc.kill();
+            reject(new CancellationError());
+        });
+
+        let builder = '';
+        proc.stdout?.on('data', (data) => {
+            const s = data.toString('utf-8');
+            builder += s;
+            log?.append(s);
+        });
+        proc.stderr?.on('data', (data) => {
+            const s = data.toString('utf-8');
+            builder += s;
+            log?.append(s);
+        });
+        proc.on('close', () => {
+            resolve(builder);
+        });
+        proc.on('exit', (code) => {
+            if (code !== 0) {
+                reject(new Error(`Failed to run pipenv ${args.join(' ')}`));
+            }
+        });
+    });
+}
+
+export function parsePipenvList(data: string): PipenvPackage[] {
+    const packages: PipenvPackage[] = [];
+    const lines = data.split('\n');
+    
+    for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('-') || trimmed.includes('Package') || trimmed.includes('=====')) {
+            continue;
+        }
+        
+        // Handle pip list format: "package==version"
+        const match = trimmed.match(/^([^\s=]+)==([^\s]+)(?:\s+(.+))?/);
+        if (match) {
+            packages.push({
+                name: match[1],
+                displayName: match[1],
+                version: match[2],
+                location: match[3]?.trim(),
+            });
+        }
+    }
+    
+    return packages;
 }

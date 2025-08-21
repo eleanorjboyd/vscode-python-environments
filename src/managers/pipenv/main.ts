@@ -1,4 +1,4 @@
-import { Disposable } from 'vscode';
+import { Disposable, LogOutputChannel } from 'vscode';
 import { PythonEnvironmentApi } from '../../api';
 import { traceInfo } from '../../common/logging';
 import { getPythonApi } from '../../features/pythonApi';
@@ -10,6 +10,7 @@ import { getPipenv } from './pipenvUtils';
 export async function registerPipenvFeatures(
     nativeFinder: NativePythonFinder,
     disposables: Disposable[],
+    log?: LogOutputChannel,
 ): Promise<void> {
     const api: PythonEnvironmentApi = await getPythonApi();
 
@@ -18,7 +19,7 @@ export async function registerPipenvFeatures(
 
         if (pipenv) {
             const mgr = new PipenvManager(nativeFinder, api);
-            const packageManager = new PipenvPackageManager(api);
+            const packageManager = new PipenvPackageManager(api, log);
             
             disposables.push(
                 mgr,
