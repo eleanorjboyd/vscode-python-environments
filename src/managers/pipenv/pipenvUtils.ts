@@ -99,6 +99,8 @@ function nativeToPythonEnv(
     const sv = shortVersion(info.version);
     const name = info.name || info.displayName || path.basename(info.prefix);
     const displayName = info.displayName || `pipenv (${sv})`;
+    // info.project; ('/Users/eleanorboyd/testing/pipenv-repo');
+    // pipenv-repo-jKOX-m5Js
 
     const shellActivation: Map<string, PythonCommandRunConfiguration[]> = new Map();
     const shellDeactivation: Map<string, PythonCommandRunConfiguration[]> = new Map();
