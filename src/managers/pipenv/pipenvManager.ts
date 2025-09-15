@@ -23,7 +23,7 @@ import {
     NativePythonEnvironmentKind,
     NativePythonFinder,
 } from '../common/nativePythonFinder';
-import { getLatest, getShellActivationCommands } from '../common/utils';
+import { getLatest, getShellActivationCommands, sortEnvironments } from '../common/utils';
 import {
     clearPipenvCache,
     getPipenvForGlobal,
@@ -31,6 +31,7 @@ import {
     setPipenvForGlobal,
     setPipenvForWorkspace,
     setPipenvForWorkspaces,
+    getPipenvVenv,
 } from './pipenvUtils';
 
 export class PipenvManager implements EnvironmentManager, Disposable {
@@ -288,7 +289,17 @@ export class PipenvManager implements EnvironmentManager, Disposable {
                 }
 
                 try {
-                    const resolved = await this.nativeFinder.resolve(envPath);
+                    let resolvedEnvPath = envPath;
+
+                    // If envPath isn't a valid discovered env, try invoking pipenv --venv in the workspace
+                    if (!this.findEnvironmentByPath(envPath)) {
+                        const venv = await getPipenvVenv(p);
+                        if (venv) {
+                            resolvedEnvPath = venv;
+                        }
+                    }
+
+                    const resolved = await this.nativeFinder.resolve(resolvedEnvPath);
                     if (isNativeEnvInfo(resolved)) {
                         const info = resolved as NativeEnvInfo;
                         if (info.kind === NativePythonEnvironmentKind.pipenv) {
@@ -419,50 +430,54 @@ export class PipenvManager implements EnvironmentManager, Disposable {
             }
         }
 
-        return envs;
+        return sortEnvironments(envs);
     }
 
     private async resolvePipenvPath(fsPath: string): Promise<PythonEnvironment | undefined> {
         try {
             const resolved = await this.nativeFinder.resolve(fsPath);
-            if (isNativeEnvInfo(resolved)) {
-                const info = resolved as NativeEnvInfo;
-                if (info.kind === NativePythonEnvironmentKind.pipenv) {
-                    if (!(info.prefix && info.executable && info.version)) {
-                        traceError(`Incomplete pipenv resolve info: ${JSON.stringify(info)}`);
-                        return undefined;
-                    }
-
-                    const prefix = info.prefix as string;
-                    const executable = info.executable as string;
-                    const version = info.version as string;
-                    const name = info.name || path.basename(prefix);
-                    const displayName = info.displayName || `pipenv (${version})`;
-                    const binDir = path.dirname(executable);
-                    const { shellActivation, shellDeactivation } = await getShellActivationCommands(binDir);
-
-                    const env = await this.api.createPythonEnvironmentItem(
-                        {
-                            name,
-                            displayName,
-                            shortDisplayName: displayName,
-                            displayPath: prefix,
-                            version,
-                            environmentPath: Uri.file(prefix),
-                            description: undefined,
-                            tooltip: prefix,
-                            execInfo: { run: { executable }, shellActivation, shellDeactivation },
-                            sysPrefix: prefix,
-                        },
-                        this,
-                    );
-                    return env;
-                }
+            if (!isNativeEnvInfo(resolved)) {
+                return undefined;
             }
+
+            const info = resolved as NativeEnvInfo;
+            if (info.kind !== NativePythonEnvironmentKind.pipenv) {
+                return undefined;
+            }
+
+            if (!(info.prefix && info.executable && info.version)) {
+                traceError(`Incomplete pipenv resolve info: ${JSON.stringify(info)}`);
+                return undefined;
+            }
+
+            const prefix = info.prefix as string;
+            const executable = info.executable as string;
+            const version = info.version as string;
+            const name = info.name || path.basename(prefix);
+            const displayName = info.displayName || `pipenv (${version})`;
+            const binDir = path.dirname(executable);
+            const { shellActivation, shellDeactivation } = await getShellActivationCommands(binDir);
+
+            const env = await this.api.createPythonEnvironmentItem(
+                {
+                    name,
+                    displayName,
+                    shortDisplayName: displayName,
+                    displayPath: prefix,
+                    version,
+                    environmentPath: Uri.file(prefix),
+                    description: undefined,
+                    tooltip: prefix,
+                    execInfo: { run: { executable }, shellActivation, shellDeactivation },
+                    sysPrefix: prefix,
+                },
+                this,
+            );
+
+            return env;
         } catch (e) {
             traceError(`Failed to resolve pipenv path: ${e}`);
+            return undefined;
         }
-
-        return undefined;
     }
 }

@@ -132,3 +132,28 @@ export async function setPipenvForWorkspaces(fsPath: string[], envPath: string |
     });
     await state.set(PIPENV_WORKSPACE_KEY, data);
 }
+
+// Run `pipenv --venv` in the specified workspace folder to get the virtualenv path
+import * as cp from 'child_process';
+import { promisify } from 'util';
+
+const exec = promisify(cp.exec);
+
+export async function getPipenvVenv(fsPath: string): Promise<string | undefined> {
+    try {
+        const pipenv = await getPipenv();
+        if (!pipenv) {
+            return undefined;
+        }
+        // Run pipenv --venv in the project folder
+        const { stdout } = await exec(`"${pipenv}" --venv`, { cwd: fsPath });
+        const venv = stdout ? stdout.trim() : undefined;
+        if (venv) {
+            // Normalize and return
+            return untildify(venv);
+        }
+    } catch (e) {
+        traceError(`Failed to run pipenv --venv in ${fsPath}: ${e}`);
+    }
+    return undefined;
+}
