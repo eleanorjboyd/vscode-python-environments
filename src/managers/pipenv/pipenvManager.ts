@@ -23,8 +23,15 @@ import {
     NativePythonEnvironmentKind,
     NativePythonFinder,
 } from '../common/nativePythonFinder';
-import { getLatest, sortEnvironments } from '../common/utils';
-import { clearPipenvCache, getPipenv } from './pipenvUtils';
+import { getLatest, getShellActivationCommands } from '../common/utils';
+import {
+    clearPipenvCache,
+    getPipenvForGlobal,
+    getPipenvForWorkspace,
+    setPipenvForGlobal,
+    setPipenvForWorkspace,
+    setPipenvForWorkspaces,
+} from './pipenvUtils';
 
 export class PipenvManager implements EnvironmentManager, Disposable {
     private collection: PythonEnvironment[] = [];
@@ -148,16 +155,25 @@ export class PipenvManager implements EnvironmentManager, Disposable {
     }
 
     async set(scope: SetEnvironmentScope, environment?: PythonEnvironment | undefined): Promise<void> {
-        // For pipenv we don't persist environment selection yet.
         if (scope === undefined) {
-            // noop for now
-        } else if (scope instanceof Uri) {
+            // set global
+            await setPipenvForGlobal(environment?.environmentPath?.fsPath);
             if (environment) {
-                this.fsPathToEnv.set(scope.fsPath, environment);
+                this.globalEnv = environment;
             } else {
-                this.fsPathToEnv.delete(scope.fsPath);
+                this.globalEnv = undefined;
+            }
+        } else if (scope instanceof Uri) {
+            const fsPath = scope.fsPath;
+            await setPipenvForWorkspace(fsPath, environment?.environmentPath?.fsPath);
+            if (environment) {
+                this.fsPathToEnv.set(fsPath, environment);
+            } else {
+                this.fsPathToEnv.delete(fsPath);
             }
         } else if (Array.isArray(scope) && scope.every((u) => u instanceof Uri)) {
+            const fsPaths = scope.map((s) => s.fsPath);
+            await setPipenvForWorkspaces(fsPaths, environment?.environmentPath?.fsPath);
             scope.forEach((s) => {
                 if (environment) {
                     this.fsPathToEnv.set(s.fsPath, environment);
@@ -197,8 +213,57 @@ export class PipenvManager implements EnvironmentManager, Disposable {
         this.globalEnv = undefined;
         this.fsPathToEnv.clear();
 
-        // pick latest as global if any
-        if (this.collection.length > 0) {
+        // Try to find a global environment
+        const fsPath = await getPipenvForGlobal();
+
+        if (fsPath) {
+            this.globalEnv = this.findEnvironmentByPath(fsPath);
+
+            // If the environment is not found, try to resolve by path using native finder
+            if (!this.globalEnv) {
+                try {
+                    const resolved = await this.nativeFinder.resolve(fsPath);
+                    if (isNativeEnvInfo(resolved)) {
+                        const info = resolved as NativeEnvInfo;
+                        if (info.kind === NativePythonEnvironmentKind.pipenv) {
+                            if (!(info.prefix && info.executable && info.version)) {
+                                traceError(`Incomplete pipenv resolve info: ${JSON.stringify(info)}`);
+                            } else {
+                                const prefix = info.prefix as string;
+                                const executable = info.executable as string;
+                                const version = info.version as string;
+                                const name = info.name || path.basename(prefix);
+                                const displayName = info.displayName || `pipenv (${version})`;
+
+                                const env = await this.api.createPythonEnvironmentItem(
+                                    {
+                                        name,
+                                        displayName,
+                                        shortDisplayName: displayName,
+                                        displayPath: prefix,
+                                        version,
+                                        environmentPath: Uri.file(prefix),
+                                        description: undefined,
+                                        tooltip: prefix,
+                                        execInfo: { run: { executable } },
+                                        sysPrefix: prefix,
+                                    },
+                                    this,
+                                );
+                                if (env) {
+                                    this.globalEnv = env;
+                                    this.collection.push(env);
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    traceError(`Failed to resolve pipenv global environment: ${e}`);
+                }
+            }
+        }
+
+        if (!this.globalEnv) {
             this.globalEnv = getLatest(this.collection);
         }
 
@@ -212,13 +277,72 @@ export class PipenvManager implements EnvironmentManager, Disposable {
             });
 
         const paths = this.api.getPythonProjects().map((p) => p.uri.fsPath);
+        // Try to find any pipenv environment explicitly associated with workspaces
         for (const p of paths) {
-            const found = pathSorted.find((e) => {
-                const t = this.api.getPythonProject(e.environmentPath)?.uri.fsPath;
-                return t && path.normalize(t) === p;
-            });
-            if (found) {
-                this.fsPathToEnv.set(p, found);
+            const envPath = await getPipenvForWorkspace(p);
+            if (envPath) {
+                const found = this.findEnvironmentByPath(envPath);
+                if (found) {
+                    this.fsPathToEnv.set(p, found);
+                    continue;
+                }
+
+                try {
+                    const resolved = await this.nativeFinder.resolve(envPath);
+                    if (isNativeEnvInfo(resolved)) {
+                        const info = resolved as NativeEnvInfo;
+                        if (info.kind === NativePythonEnvironmentKind.pipenv) {
+                            if (!(info.prefix && info.executable && info.version)) {
+                                traceError(`Incomplete pipenv resolve info: ${JSON.stringify(info)}`);
+                            } else {
+                                const prefix = info.prefix as string;
+                                const executable = info.executable as string;
+                                const version = info.version as string;
+                                const name = info.name || path.basename(prefix);
+                                const displayName = info.displayName || `pipenv (${version})`;
+                                const binDir = path.dirname(executable);
+                                const { shellActivation, shellDeactivation } = await getShellActivationCommands(binDir);
+                                const env = await this.api.createPythonEnvironmentItem(
+                                    {
+                                        name,
+                                        displayName,
+                                        shortDisplayName: displayName,
+                                        displayPath: prefix,
+                                        version,
+                                        environmentPath: Uri.file(prefix),
+                                        description: undefined,
+                                        tooltip: prefix,
+                                        execInfo: { run: { executable }, shellActivation, shellDeactivation },
+                                        sysPrefix: prefix,
+                                    },
+                                    this,
+                                );
+                                if (env) {
+                                    this.fsPathToEnv.set(p, env);
+                                    this.collection.push(env);
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    traceError(`Failed to resolve pipenv workspace environment: ${e}`);
+                }
+            } else {
+                // If there is not an environment already assigned by user to this project
+                // then see if there is one in the collection
+                if (pathSorted.length === 1) {
+                    this.fsPathToEnv.set(p, pathSorted[0]);
+                } else {
+                    // If there is more than one environment then we need to check if the project
+                    // is a subfolder of one of the environments
+                    const found = pathSorted.find((e) => {
+                        const t = this.api.getPythonProject(e.environmentPath)?.uri.fsPath;
+                        return t && path.normalize(t) === p;
+                    });
+                    if (found) {
+                        this.fsPathToEnv.set(p, found);
+                    }
+                }
             }
         }
     }
@@ -245,102 +369,100 @@ export class PipenvManager implements EnvironmentManager, Disposable {
         });
     }
 
-    // Helpers that interact with native finder
     private async refreshPipenv(hard: boolean): Promise<PythonEnvironment[]> {
-        try {
-            const data = await this.nativeFinder.refresh(hard);
+        const items = await this.nativeFinder.refresh(hard);
+        const envs: PythonEnvironment[] = [];
 
-            const pipenvExe = await getPipenv(this.nativeFinder);
-            if (!pipenvExe) {
-                traceInfo('Pipenv executable not found');
-                return [];
+        for (const it of items) {
+            if (!isNativeEnvInfo(it)) {
+                continue;
             }
 
-            const envs = data
-                .filter((e) => isNativeEnvInfo(e))
-                .map((e) => e as NativeEnvInfo)
-                .filter((e) => e.kind === NativePythonEnvironmentKind.pipenv);
+            // Cast to NativeEnvInfo after runtime check
+            const info = it as NativeEnvInfo;
 
-            const collection: PythonEnvironment[] = [];
-
-            await Promise.all(
-                envs.map(async (e) => {
-                    if (!(e.prefix && e.executable && e.version)) {
-                        traceError(`Incomplete pipenv environment info: ${JSON.stringify(e)}`);
-                        return;
-                    }
-
-                    const name = e.name || e.displayName || path.basename(e.prefix);
-                    const displayName = e.displayName || `pipenv (${e.version})`;
-
-                    const environment = await this.api.createPythonEnvironmentItem(
-                        {
-                            name: name,
-                            displayName: displayName,
-                            shortDisplayName: displayName,
-                            displayPath: e.prefix,
-                            version: e.version,
-                            environmentPath: Uri.file(e.prefix),
-                            description: undefined,
-                            tooltip: e.prefix,
-                            execInfo: {
-                                run: { executable: e.executable },
-                            },
-                            sysPrefix: e.prefix,
-                        },
-                        this,
-                    );
-
-                    if (environment) {
-                        collection.push(environment);
-                    }
-                }),
-            );
-
-            return sortEnvironments(collection);
-        } catch (err) {
-            traceError('Error refreshing pipenv environments', err);
-            return [];
-        }
-    }
-
-    private async resolvePipenvPath(fsPath: string): Promise<PythonEnvironment | undefined> {
-        try {
-            const e = await this.nativeFinder.resolve(fsPath);
-            if (!isNativeEnvInfo(e) || e.kind !== NativePythonEnvironmentKind.pipenv) {
-                return undefined;
+            if (info.kind !== NativePythonEnvironmentKind.pipenv) {
+                continue;
             }
 
-            if (!(e.prefix && e.executable && e.version)) {
-                traceError(`Incomplete pipenv environment info: ${JSON.stringify(e)}`);
-                return undefined;
+            if (!(info.prefix && info.executable && info.version)) {
+                traceError(`Incomplete pipenv info from native finder: ${JSON.stringify(info)}`);
+                continue;
             }
 
-            const name = e.name || e.displayName || path.basename(e.prefix);
-            const displayName = e.displayName || `pipenv (${e.version})`;
+            const prefix = info.prefix as string;
+            const executable = info.executable as string;
+            const version = info.version as string;
+            const name = info.name || path.basename(prefix);
+            const displayName = info.displayName || `pipenv (${version})`;
+            const binDir = path.dirname(executable);
+            const { shellActivation, shellDeactivation } = await getShellActivationCommands(binDir);
 
-            const environment = await this.api.createPythonEnvironmentItem(
+            const env = await this.api.createPythonEnvironmentItem(
                 {
-                    name: name,
-                    displayName: displayName,
+                    name,
+                    displayName,
                     shortDisplayName: displayName,
-                    displayPath: e.prefix,
-                    version: e.version,
-                    environmentPath: Uri.file(e.prefix),
+                    displayPath: prefix,
+                    version,
+                    environmentPath: Uri.file(prefix),
                     description: undefined,
-                    tooltip: e.prefix,
-                    execInfo: {
-                        run: { executable: e.executable },
-                    },
-                    sysPrefix: e.prefix,
+                    tooltip: prefix,
+                    execInfo: { run: { executable }, shellActivation, shellDeactivation },
+                    sysPrefix: prefix,
                 },
                 this,
             );
 
-            return environment;
-        } catch (err) {
-            traceError('Error resolving pipenv environment', err);
-            return undefined;
+            if (env) {
+                envs.push(env);
+            }
         }
+
+        return envs;
+    }
+
+    private async resolvePipenvPath(fsPath: string): Promise<PythonEnvironment | undefined> {
+        try {
+            const resolved = await this.nativeFinder.resolve(fsPath);
+            if (isNativeEnvInfo(resolved)) {
+                const info = resolved as NativeEnvInfo;
+                if (info.kind === NativePythonEnvironmentKind.pipenv) {
+                    if (!(info.prefix && info.executable && info.version)) {
+                        traceError(`Incomplete pipenv resolve info: ${JSON.stringify(info)}`);
+                        return undefined;
+                    }
+
+                    const prefix = info.prefix as string;
+                    const executable = info.executable as string;
+                    const version = info.version as string;
+                    const name = info.name || path.basename(prefix);
+                    const displayName = info.displayName || `pipenv (${version})`;
+                    const binDir = path.dirname(executable);
+                    const { shellActivation, shellDeactivation } = await getShellActivationCommands(binDir);
+
+                    const env = await this.api.createPythonEnvironmentItem(
+                        {
+                            name,
+                            displayName,
+                            shortDisplayName: displayName,
+                            displayPath: prefix,
+                            version,
+                            environmentPath: Uri.file(prefix),
+                            description: undefined,
+                            tooltip: prefix,
+                            execInfo: { run: { executable }, shellActivation, shellDeactivation },
+                            sysPrefix: prefix,
+                        },
+                        this,
+                    );
+                    return env;
+                }
+            }
+        } catch (e) {
+            traceError(`Failed to resolve pipenv path: ${e}`);
+        }
+
+        return undefined;
     }
 }

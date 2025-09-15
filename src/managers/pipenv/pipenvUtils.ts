@@ -9,6 +9,8 @@ import { isWindows } from '../../common/utils/platformUtils';
 import { isNativeEnvInfo, NativeEnvManagerInfo, NativePythonFinder } from '../common/nativePythonFinder';
 
 export const PIPENV_PATH_KEY = `${ENVS_EXTENSION_ID}:pipenv:PIPENV_PATH`;
+export const PIPENV_WORKSPACE_KEY = `${ENVS_EXTENSION_ID}:pipenv:WORKSPACE_SELECTED`;
+export const PIPENV_GLOBAL_KEY = `${ENVS_EXTENSION_ID}:pipenv:GLOBAL_SELECTED`;
 
 let pipenvPath: string | undefined;
 export async function clearPipenvCache(): Promise<void> {
@@ -82,4 +84,51 @@ export async function getPipenv(native?: NativePythonFinder): Promise<string | u
     }
 
     return undefined;
+}
+
+export async function getPipenvForGlobal(): Promise<string | undefined> {
+    const state = await getWorkspacePersistentState();
+    return await state.get(PIPENV_GLOBAL_KEY);
+}
+
+export async function setPipenvForGlobal(pipenvPath: string | undefined): Promise<void> {
+    const state = await getWorkspacePersistentState();
+    await state.set(PIPENV_GLOBAL_KEY, pipenvPath);
+}
+
+export async function getPipenvForWorkspace(fsPath: string): Promise<string | undefined> {
+    const state = await getWorkspacePersistentState();
+    const data: { [key: string]: string } | undefined = await state.get(PIPENV_WORKSPACE_KEY);
+    if (data) {
+        try {
+            return data[fsPath];
+        } catch {
+            return undefined;
+        }
+    }
+    return undefined;
+}
+
+export async function setPipenvForWorkspace(fsPath: string, envPath: string | undefined): Promise<void> {
+    const state = await getWorkspacePersistentState();
+    const data: { [key: string]: string } = (await state.get(PIPENV_WORKSPACE_KEY)) ?? {};
+    if (envPath) {
+        data[fsPath] = envPath;
+    } else {
+        delete data[fsPath];
+    }
+    await state.set(PIPENV_WORKSPACE_KEY, data);
+}
+
+export async function setPipenvForWorkspaces(fsPath: string[], envPath: string | undefined): Promise<void> {
+    const state = await getWorkspacePersistentState();
+    const data: { [key: string]: string } = (await state.get(PIPENV_WORKSPACE_KEY)) ?? {};
+    fsPath.forEach((s) => {
+        if (envPath) {
+            data[s] = envPath;
+        } else {
+            delete data[s];
+        }
+    });
+    await state.set(PIPENV_WORKSPACE_KEY, data);
 }
