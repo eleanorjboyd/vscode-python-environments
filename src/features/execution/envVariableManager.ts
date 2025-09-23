@@ -2,10 +2,10 @@ import * as fsapi from 'fs-extra';
 import * as path from 'path';
 import { Event, EventEmitter, FileChangeType, Uri } from 'vscode';
 import { Disposable } from 'vscode-jsonrpc';
-import { DidChangeEnvironmentVariablesEventArgs, PythonEnvironmentVariablesApi } from '../../api';
 import { resolveVariables } from '../../common/utils/internalVariables';
 import { createFileSystemWatcher, getConfiguration } from '../../common/workspace.apis';
 import { PythonProjectManager } from '../../internal.api';
+import { DidChangeEnvironmentVariablesEventArgs, PythonEnvironmentVariablesApi } from '../../proposedApis';
 import { mergeEnvVariables, parseEnvFile } from './envVarUtils';
 
 export interface EnvVarManager extends PythonEnvironmentVariablesApi, Disposable {}

@@ -22,7 +22,6 @@ import {
     IconPath,
     PythonEnvironment,
     PythonEnvironmentApi,
-    PythonProject,
     QuickCreateConfig,
     RefreshEnvironmentsScope,
     ResolveEnvironmentContext,
@@ -34,6 +33,7 @@ import { traceError, traceWarn } from '../../common/logging';
 import { createDeferred, Deferred } from '../../common/utils/deferred';
 import { showErrorMessage, withProgress } from '../../common/window.apis';
 import { findParentIfFile } from '../../features/envCommands';
+import { PythonProject } from '../../proposedApis';
 import { NativePythonFinder } from '../common/nativePythonFinder';
 import { getLatest, shortVersion, sortEnvironments } from '../common/utils';
 import {

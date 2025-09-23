@@ -1,8 +1,8 @@
 import path from 'path';
 import { QuickPickItem } from 'vscode';
-import { PythonProject } from '../../api';
-import { showQuickPick, showQuickPickWithButtons } from '../window.apis';
+import { PythonProject } from '../../proposedApis';
 import { Pickers } from '../localize';
+import { showQuickPick, showQuickPickWithButtons } from '../window.apis';
 
 interface ProjectQuickPickItem extends QuickPickItem {
     project: PythonProject;

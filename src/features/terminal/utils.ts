@@ -1,8 +1,9 @@
 import * as path from 'path';
 import { Terminal, TerminalOptions, Uri } from 'vscode';
-import { PythonEnvironment, PythonProject, PythonProjectEnvironmentApi, PythonProjectGetterApi } from '../../api';
+import { PythonEnvironment, PythonProjectEnvironmentApi } from '../../api';
 import { sleep } from '../../common/utils/asyncUtils';
 import { getConfiguration, getWorkspaceFolders } from '../../common/workspace.apis';
+import { PythonProject, PythonProjectGetterApi } from '../../proposedApis';
 
 const SHELL_INTEGRATION_TIMEOUT = 500; // 0.5 seconds
 const SHELL_INTEGRATION_POLL_INTERVAL = 20; // 0.02 seconds

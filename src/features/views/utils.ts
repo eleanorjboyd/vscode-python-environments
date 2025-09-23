@@ -1,6 +1,6 @@
 import * as path from 'path';
-import { PythonProject } from '../../api';
 import { getWorkspaceFolder } from '../../common/workspace.apis';
+import { PythonProject } from '../../proposedApis';
 
 export function removable(project: PythonProject): boolean {
     const workspace = getWorkspaceFolder(project.uri);

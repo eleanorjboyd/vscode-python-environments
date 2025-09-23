@@ -1,6 +1,6 @@
 import { Disposable } from 'vscode';
-import { PythonProjectCreator } from '../../api';
 import { ProjectCreators } from '../../internal.api';
+import { PythonProjectCreator } from '../../proposedApis';
 
 export class ProjectCreatorsImpl implements ProjectCreators {
     private _creators: PythonProjectCreator[] = [];

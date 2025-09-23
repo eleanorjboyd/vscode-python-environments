@@ -1,11 +1,11 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { commands, l10n, MarkdownString, QuickInputButtons, Uri, window, workspace } from 'vscode';
-import { PythonProject, PythonProjectCreator, PythonProjectCreatorOptions } from '../../api';
 import { NEW_PROJECT_TEMPLATES_FOLDER } from '../../common/constants';
 import { traceError } from '../../common/logging';
 import { showInputBoxWithButtons, showTextDocument } from '../../common/window.apis';
 import { PythonProjectManager } from '../../internal.api';
+import { PythonProject, PythonProjectCreator, PythonProjectCreatorOptions } from '../../proposedApis';
 import { isCopilotInstalled, manageCopilotInstructionsFile, replaceInFilesAndNames } from './creationHelpers';
 
 export class NewScriptProject implements PythonProjectCreator {

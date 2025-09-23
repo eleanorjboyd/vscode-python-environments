@@ -1,6 +1,6 @@
 import { commands, QuickInputButtons, QuickPickItem, QuickPickItemKind, workspace, WorkspaceFolder } from 'vscode';
-import { PythonProjectCreator } from '../../api';
 import { InternalEnvironmentManager, InternalPackageManager } from '../../internal.api';
+import { PythonProjectCreator } from '../../proposedApis';
 import { Common, Pickers } from '../localize';
 import { showQuickPickWithButtons } from '../window.apis';
 

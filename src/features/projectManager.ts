@@ -1,6 +1,6 @@
 import * as path from 'path';
 import { Disposable, EventEmitter, MarkdownString, Uri, workspace } from 'vscode';
-import { IconPath, PythonProject } from '../api';
+import { IconPath } from '../api';
 import { DEFAULT_ENV_MANAGER_ID, DEFAULT_PACKAGE_MANAGER_ID } from '../common/constants';
 import { createSimpleDebounce } from '../common/utils/debounce';
 import {
@@ -10,6 +10,7 @@ import {
     onDidChangeWorkspaceFolders,
 } from '../common/workspace.apis';
 import { PythonProjectManager, PythonProjectSettings, PythonProjectsImpl } from '../internal.api';
+import { PythonProject } from '../proposedApis';
 import {
     addPythonProjectSetting,
     EditProjectSettings,

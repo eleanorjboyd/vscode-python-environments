@@ -13,7 +13,6 @@ import {
     IconPath,
     PythonEnvironment,
     PythonEnvironmentApi,
-    PythonProject,
     QuickCreateConfig,
     RefreshEnvironmentsScope,
     ResolveEnvironmentContext,
@@ -23,6 +22,7 @@ import { CondaStrings } from '../../common/localize';
 import { traceError } from '../../common/logging';
 import { createDeferred, Deferred } from '../../common/utils/deferred';
 import { showErrorMessage, withProgress } from '../../common/window.apis';
+import { PythonProject } from '../../proposedApis';
 import { NativePythonFinder } from '../common/nativePythonFinder';
 import { CondaSourcingStatus } from './condaSourcingUtils';
 import {

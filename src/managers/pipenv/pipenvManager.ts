@@ -9,7 +9,6 @@ import {
     IconPath,
     PythonEnvironment,
     PythonEnvironmentApi,
-    PythonProject,
     RefreshEnvironmentsScope,
     ResolveEnvironmentContext,
     SetEnvironmentScope,
@@ -17,6 +16,7 @@ import {
 import { PipenvStrings } from '../../common/localize';
 import { createDeferred, Deferred } from '../../common/utils/deferred';
 import { withProgress } from '../../common/window.apis';
+import { PythonProject } from '../../proposedApis';
 import { NativePythonFinder } from '../common/nativePythonFinder';
 import {
     clearPipenvCache,

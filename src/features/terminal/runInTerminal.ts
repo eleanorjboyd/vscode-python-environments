@@ -1,7 +1,8 @@
 import { Terminal, TerminalShellExecution } from 'vscode';
-import { PythonEnvironment, PythonTerminalExecutionOptions } from '../../api';
+import { PythonEnvironment } from '../../api';
 import { createDeferred } from '../../common/utils/deferred';
 import { onDidEndTerminalShellExecution } from '../../common/window.apis';
+import { PythonTerminalExecutionOptions } from '../../proposedApis';
 import { ShellConstants } from '../common/shellConstants';
 import { identifyTerminalShell } from '../common/shellDetector';
 import { quoteArgs } from '../execution/execUtils';

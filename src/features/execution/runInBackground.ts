@@ -1,6 +1,7 @@
 import * as cp from 'child_process';
-import { PythonBackgroundRunOptions, PythonEnvironment, PythonProcess } from '../../api';
+import { PythonEnvironment } from '../../api';
 import { traceError, traceInfo, traceWarn } from '../../common/logging';
+import { PythonBackgroundRunOptions, PythonProcess } from '../../proposedApis';
 import { quoteStringIfNecessary } from './execUtils';
 
 export async function runInBackground(

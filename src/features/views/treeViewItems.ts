@@ -1,7 +1,8 @@
 import { Command, MarkdownString, ThemeIcon, TreeItem, TreeItemCollapsibleState } from 'vscode';
-import { EnvironmentGroupInfo, IconPath, Package, PythonEnvironment, PythonProject } from '../../api';
+import { EnvironmentGroupInfo, IconPath, Package, PythonEnvironment } from '../../api';
 import { EnvViewStrings } from '../../common/localize';
 import { InternalEnvironmentManager, InternalPackageManager } from '../../internal.api';
+import { PythonProject } from '../../proposedApis';
 import { isActivatableEnvironment } from '../common/activation';
 import { removable } from './utils';
 

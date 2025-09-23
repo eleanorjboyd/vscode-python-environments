@@ -1,14 +1,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { commands, QuickInputButtons, TaskExecution, TaskRevealKind, Terminal, Uri, workspace } from 'vscode';
-import {
-    CreateEnvironmentOptions,
-    PythonEnvironment,
-    PythonEnvironmentApi,
-    PythonProject,
-    PythonProjectCreator,
-    PythonProjectCreatorOptions,
-} from '../api';
+import { CreateEnvironmentOptions, PythonEnvironment, PythonEnvironmentApi } from '../api';
 import { traceError, traceInfo, traceVerbose } from '../common/logging';
 import {
     EnvironmentManagers,
@@ -30,6 +23,7 @@ import {
 } from '../common/pickers/managers';
 import { pickProject, pickProjectMany } from '../common/pickers/projects';
 import { activeTextEditor, showErrorMessage, showInformationMessage } from '../common/window.apis';
+import { PythonProject, PythonProjectCreator, PythonProjectCreatorOptions } from '../proposedApis';
 import { runAsTask } from './execution/runAsTask';
 import { runInTerminal } from './terminal/runInTerminal';
 import { TerminalManager } from './terminal/terminalManager';

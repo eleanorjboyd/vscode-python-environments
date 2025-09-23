@@ -10,13 +10,13 @@ import {
     IconPath,
     PythonEnvironment,
     PythonEnvironmentApi,
-    PythonProject,
     RefreshEnvironmentsScope,
     ResolveEnvironmentContext,
     SetEnvironmentScope,
 } from '../../api';
 import { SysManagerStrings } from '../../common/localize';
 import { createDeferred, Deferred } from '../../common/utils/deferred';
+import { PythonProject } from '../../proposedApis';
 import { NativePythonFinder } from '../common/nativePythonFinder';
 import { getLatest } from '../common/utils';
 import {

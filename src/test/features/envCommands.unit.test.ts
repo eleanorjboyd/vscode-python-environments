@@ -1,12 +1,13 @@
 import * as assert from 'assert';
-import * as typeMoq from 'typemoq';
 import * as sinon from 'sinon';
-import { EnvironmentManagers, InternalEnvironmentManager, PythonProjectManager } from '../../internal.api';
-import * as projectApi from '../../common/pickers/projects';
-import * as managerApi from '../../common/pickers/managers';
-import { PythonEnvironment, PythonProject } from '../../api';
-import { createAnyEnvironmentCommand } from '../../features/envCommands';
+import * as typeMoq from 'typemoq';
 import { Uri } from 'vscode';
+import { PythonEnvironment } from '../../api';
+import * as managerApi from '../../common/pickers/managers';
+import * as projectApi from '../../common/pickers/projects';
+import { createAnyEnvironmentCommand } from '../../features/envCommands';
+import { EnvironmentManagers, InternalEnvironmentManager, PythonProjectManager } from '../../internal.api';
+import { PythonProject } from '../../proposedApis';
 
 suite('Create Any Environment Command Tests', () => {
     let em: typeMoq.IMock<EnvironmentManagers>;

@@ -1,7 +1,7 @@
 import * as fsapi from 'fs-extra';
 import * as path from 'path';
 import { Disposable, EventEmitter, ProgressLocation, Terminal, TerminalOptions, Uri } from 'vscode';
-import { PythonEnvironment, PythonEnvironmentApi, PythonProject, PythonTerminalCreateOptions } from '../../api';
+import { PythonEnvironment, PythonEnvironmentApi } from '../../api';
 import { ActivationStrings } from '../../common/localize';
 import { traceInfo, traceVerbose } from '../../common/logging';
 import {
@@ -13,6 +13,7 @@ import {
     withProgress,
 } from '../../common/window.apis';
 import { getConfiguration, onDidChangeConfiguration } from '../../common/workspace.apis';
+import { PythonProject, PythonTerminalCreateOptions } from '../../proposedApis';
 import { isActivatableEnvironment } from '../common/activation';
 import { identifyTerminalShell } from '../common/shellDetector';
 import { getPythonApi } from '../pythonApi';

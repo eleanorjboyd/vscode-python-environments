@@ -7,7 +7,6 @@ import {
     GetEnvironmentScope,
     PackageManager,
     PythonEnvironment,
-    PythonProject,
     SetEnvironmentScope,
 } from '../api';
 import {
@@ -31,6 +30,7 @@ import {
     PythonProjectManager,
     PythonProjectSettings,
 } from '../internal.api';
+import { PythonProject } from '../proposedApis';
 import {
     EditAllManagerSettings,
     getDefaultEnvManagerSetting,

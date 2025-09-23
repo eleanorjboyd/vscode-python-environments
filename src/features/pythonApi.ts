@@ -1,35 +1,31 @@
-import { Uri, Disposable, Event, EventEmitter, Terminal, TaskExecution } from 'vscode';
+import { Disposable, Event, EventEmitter, TaskExecution, Terminal, Uri } from 'vscode';
 import {
-    PythonEnvironmentApi,
-    PythonEnvironment,
-    EnvironmentManager,
-    PackageManager,
+    CreateEnvironmentOptions,
+    CreateEnvironmentScope,
     DidChangeEnvironmentEventArgs,
     DidChangeEnvironmentsEventArgs,
-    DidChangePythonProjectsEventArgs,
+    DidChangePackagesEventArgs,
+    EnvironmentManager,
+    GetEnvironmentScope,
     GetEnvironmentsScope,
     Package,
-    PythonEnvironmentInfo,
-    PythonProject,
-    RefreshEnvironmentsScope,
-    DidChangePackagesEventArgs,
-    PythonEnvironmentId,
-    CreateEnvironmentScope,
-    SetEnvironmentScope,
-    GetEnvironmentScope,
-    PackageInfo,
     PackageId,
-    PythonProjectCreator,
-    ResolveEnvironmentContext,
+    PackageInfo,
     PackageManagementOptions,
-    PythonProcess,
-    PythonTaskExecutionOptions,
-    PythonTerminalExecutionOptions,
-    PythonBackgroundRunOptions,
-    PythonTerminalCreateOptions,
-    DidChangeEnvironmentVariablesEventArgs,
-    CreateEnvironmentOptions,
+    PackageManager,
+    PythonEnvironment,
+    PythonEnvironmentApi,
+    PythonEnvironmentId,
+    PythonEnvironmentInfo,
+    RefreshEnvironmentsScope,
+    ResolveEnvironmentContext,
+    SetEnvironmentScope,
 } from '../api';
+import { traceInfo } from '../common/logging';
+import { pickEnvironmentManager } from '../common/pickers/managers';
+import { createDeferred } from '../common/utils/deferred';
+import { checkUri } from '../common/utils/pathUtils';
+import { handlePythonPath } from '../common/utils/pythonPath';
 import {
     EnvironmentManagers,
     InternalEnvironmentManager,
@@ -38,17 +34,23 @@ import {
     PythonPackageImpl,
     PythonProjectManager,
 } from '../internal.api';
-import { createDeferred } from '../common/utils/deferred';
-import { traceInfo } from '../common/logging';
-import { pickEnvironmentManager } from '../common/pickers/managers';
-import { handlePythonPath } from '../common/utils/pythonPath';
-import { TerminalManager } from './terminal/terminalManager';
-import { runAsTask } from './execution/runAsTask';
-import { runInTerminal } from './terminal/runInTerminal';
-import { runInBackground } from './execution/runInBackground';
-import { EnvVarManager } from './execution/envVariableManager';
-import { checkUri } from '../common/utils/pathUtils';
+import {
+    DidChangeEnvironmentVariablesEventArgs,
+    DidChangePythonProjectsEventArgs,
+    PythonBackgroundRunOptions,
+    PythonProcess,
+    PythonProject,
+    PythonProjectCreator,
+    PythonTaskExecutionOptions,
+    PythonTerminalCreateOptions,
+    PythonTerminalExecutionOptions,
+} from '../proposedApis';
 import { waitForAllEnvManagers, waitForEnvManager, waitForEnvManagerId } from './common/managerReady';
+import { EnvVarManager } from './execution/envVariableManager';
+import { runAsTask } from './execution/runAsTask';
+import { runInBackground } from './execution/runInBackground';
+import { runInTerminal } from './terminal/runInTerminal';
+import { TerminalManager } from './terminal/terminalManager';
 
 class PythonEnvironmentApiImpl implements PythonEnvironmentApi {
     private readonly _onDidChangeEnvironments = new EventEmitter<DidChangeEnvironmentsEventArgs>();
@@ -214,6 +216,7 @@ class PythonEnvironmentApiImpl implements PythonEnvironmentApi {
         return this.envManagers.setEnvironment(currentScope, environment);
     }
     async getEnvironment(scope: GetEnvironmentScope): Promise<PythonEnvironment | undefined> {
+        console.log('get env for scope:', scope?.fsPath);
         const currentScope = checkUri(scope) as GetEnvironmentScope;
         await waitForEnvManager(currentScope ? [currentScope] : undefined);
         return this.envManagers.getEnvironment(currentScope);

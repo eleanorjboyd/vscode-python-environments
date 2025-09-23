@@ -20,8 +20,6 @@ import {
     PythonEnvironmentExecutionInfo,
     PythonEnvironmentId,
     PythonEnvironmentInfo,
-    PythonProject,
-    PythonProjectCreator,
     QuickCreateConfig,
     RefreshEnvironmentsScope,
     ResolveEnvironmentContext,
@@ -30,6 +28,7 @@ import {
 import { CreateEnvironmentNotSupported, RemoveEnvironmentNotSupported } from './common/errors/NotSupportedError';
 import { EventNames } from './common/telemetry/constants';
 import { sendTelemetryEvent } from './common/telemetry/sender';
+import { PythonProject, PythonProjectCreator } from './proposedApis';
 
 export type EnvironmentManagerScope = undefined | string | Uri | PythonEnvironment;
 export type PackageManagerScope = undefined | string | Uri | PythonEnvironment | Package;

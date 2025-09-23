@@ -8,10 +8,11 @@ import {
     Uri,
     WorkspaceFolder,
 } from 'vscode';
-import { PythonEnvironment, PythonTaskExecutionOptions } from '../../api';
+import { PythonEnvironment } from '../../api';
 import { traceInfo, traceWarn } from '../../common/logging';
 import { executeTask } from '../../common/tasks.apis';
 import { getWorkspaceFolder } from '../../common/workspace.apis';
+import { PythonTaskExecutionOptions } from '../../proposedApis';
 import { quoteStringIfNecessary } from './execUtils';
 
 function getWorkspaceFolderOrDefault(uri?: Uri): WorkspaceFolder | TaskScope {

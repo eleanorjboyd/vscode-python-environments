@@ -4,7 +4,7 @@ import * as typeMoq from 'typemoq';
 import * as vscode from 'vscode';
 import { PythonEnvironment, PythonEnvironmentId } from '../../api';
 import { EnvironmentManagers, PythonProjectManager } from '../../internal.api';
-import { PythonProject } from '../../api';
+import { PythonProject } from '../../proposedApis';
 
 // We need to mock the extension's activate function to test the collectEnvironmentInfo function
 // Since it's a local function, we'll test the command registration instead
@@ -21,11 +21,11 @@ suite('Report Issue Command Tests', () => {
     test('should handle environment collection with empty data', () => {
         mockEnvManagers.setup((em) => em.managers).returns(() => []);
         mockProjectManager.setup((pm) => pm.getProjects(typeMoq.It.isAny())).returns(() => []);
-        
+
         // Test that empty collections are handled gracefully
         const managers = mockEnvManagers.object.managers;
         const projects = mockProjectManager.object.getProjects();
-        
+
         assert.strictEqual(managers.length, 0);
         assert.strictEqual(projects.length, 0);
     });
@@ -34,7 +34,7 @@ suite('Report Issue Command Tests', () => {
         // Create mock environment
         const mockEnvId: PythonEnvironmentId = {
             id: 'test-env-id',
-            managerId: 'test-manager'
+            managerId: 'test-manager',
         };
 
         const mockEnv: PythonEnvironment = {
@@ -47,22 +47,22 @@ suite('Report Issue Command Tests', () => {
             execInfo: {
                 run: {
                     executable: '/path/to/python',
-                    args: []
-                }
+                    args: [],
+                },
             },
-            sysPrefix: '/path/to/env'
+            sysPrefix: '/path/to/env',
         };
 
         const mockManager = {
             id: 'test-manager',
             displayName: 'Test Manager',
-            getEnvironments: async () => [mockEnv]
+            getEnvironments: async () => [mockEnv],
         } as any;
 
         // Create mock project
         const mockProject: PythonProject = {
             uri: vscode.Uri.file('/path/to/project'),
-            name: 'Test Project'
+            name: 'Test Project',
         };
 
         mockEnvManagers.setup((em) => em.managers).returns(() => [mockManager]);
@@ -85,7 +85,7 @@ suite('Report Issue Command Tests', () => {
             displayName: 'Error Manager',
             getEnvironments: async () => {
                 throw new Error('Test error');
-            }
+            },
         } as any;
 
         mockEnvManagers.setup((em) => em.managers).returns(() => [mockManager]);
@@ -101,7 +101,7 @@ suite('Report Issue Command Tests', () => {
         // Basic test to ensure command registration structure would work
         // The actual command registration happens during extension activation
         // This tests the mock setup and basic functionality
-        
+
         mockEnvManagers.setup((em) => em.managers).returns(() => []);
         mockProjectManager.setup((pm) => pm.getProjects(typeMoq.It.isAny())).returns(() => []);
 

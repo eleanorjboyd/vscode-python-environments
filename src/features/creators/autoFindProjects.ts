@@ -1,11 +1,11 @@
 import * as path from 'path';
 import { Uri } from 'vscode';
-import { PythonProject, PythonProjectCreator, PythonProjectCreatorOptions } from '../../api';
 import { ProjectCreatorString } from '../../common/localize';
 import { traceInfo } from '../../common/logging';
 import { showErrorMessage, showQuickPickWithButtons, showWarningMessage } from '../../common/window.apis';
 import { findFiles } from '../../common/workspace.apis';
 import { PythonProjectManager, PythonProjectsImpl } from '../../internal.api';
+import { PythonProject, PythonProjectCreator, PythonProjectCreatorOptions } from '../../proposedApis';
 
 function getUniqueUri(uris: Uri[]): {
     label: string;

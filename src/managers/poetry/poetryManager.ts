@@ -10,7 +10,6 @@ import {
     IconPath,
     PythonEnvironment,
     PythonEnvironmentApi,
-    PythonProject,
     RefreshEnvironmentsScope,
     ResolveEnvironmentContext,
     SetEnvironmentScope,
@@ -19,6 +18,7 @@ import { PoetryStrings } from '../../common/localize';
 import { traceError, traceInfo } from '../../common/logging';
 import { createDeferred, Deferred } from '../../common/utils/deferred';
 import { withProgress } from '../../common/window.apis';
+import { PythonProject } from '../../proposedApis';
 import { NativePythonFinder } from '../common/nativePythonFinder';
 import { getLatest } from '../common/utils';
 import {

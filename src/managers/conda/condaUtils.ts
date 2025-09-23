@@ -23,7 +23,6 @@ import {
     PythonEnvironment,
     PythonEnvironmentApi,
     PythonEnvironmentInfo,
-    PythonProject,
 } from '../../api';
 import { ENVS_EXTENSION_ID, EXTENSION_ROOT_DIR } from '../../common/constants';
 import { showErrorMessageWithLogs } from '../../common/errors/utils';
@@ -45,6 +44,7 @@ import {
 import { getConfiguration } from '../../common/workspace.apis';
 import { ShellConstants } from '../../features/common/shellConstants';
 import { quoteArgs } from '../../features/execution/execUtils';
+import { PythonProject } from '../../proposedApis';
 import {
     isNativeEnvInfo,
     NativeEnvInfo,

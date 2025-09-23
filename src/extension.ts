@@ -1,6 +1,6 @@
 import { commands, ExtensionContext, LogOutputChannel, Terminal, Uri, window } from 'vscode';
 import { version as extensionVersion } from '../package.json';
-import { PythonEnvironment, PythonEnvironmentApi, PythonProjectCreator } from './api';
+import { PythonEnvironment, PythonEnvironmentApi } from './api';
 import { ensureCorrectVersion } from './common/extVersion';
 import { registerLogger, traceError, traceInfo, traceVerbose, traceWarn } from './common/logging';
 import { clearPersistentState, setPersistentState } from './common/persistentState';
@@ -85,6 +85,7 @@ import { registerCondaFeatures } from './managers/conda/main';
 import { registerPipenvFeatures } from './managers/pipenv/main';
 import { registerPoetryFeatures } from './managers/poetry/main';
 import { registerPyenvFeatures } from './managers/pyenv/main';
+import { PythonProjectCreator } from './proposedApis';
 
 export async function activate(context: ExtensionContext): Promise<PythonEnvironmentApi | undefined> {
     const useEnvironmentsExtension = getConfiguration('python').get<boolean>('useEnvironmentsExtension', true);

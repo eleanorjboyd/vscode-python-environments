@@ -1,10 +1,10 @@
 import * as path from 'path';
 import { Uri, window, workspace } from 'vscode';
-import { PythonProject, PythonProjectCreator, PythonProjectCreatorOptions } from '../../api';
 import { ProjectCreatorString } from '../../common/localize';
 import { traceInfo, traceLog } from '../../common/logging';
 import { showOpenDialog, showWarningMessage } from '../../common/window.apis';
 import { PythonProjectManager, PythonProjectsImpl } from '../../internal.api';
+import { PythonProject, PythonProjectCreator, PythonProjectCreatorOptions } from '../../proposedApis';
 
 export class ExistingProjects implements PythonProjectCreator {
     public readonly name = 'existingProjects';

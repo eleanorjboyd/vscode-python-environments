@@ -10,7 +10,6 @@ import {
     IconPath,
     PythonEnvironment,
     PythonEnvironmentApi,
-    PythonProject,
     RefreshEnvironmentsScope,
     ResolveEnvironmentContext,
     SetEnvironmentScope,
@@ -32,6 +31,7 @@ import {
     setPyenvForWorkspace,
     setPyenvForWorkspaces,
 } from './pyenvUtils';
+import { PythonProject } from '../../proposedApis';
 
 export class PyEnvManager implements EnvironmentManager, Disposable {
     private collection: PythonEnvironment[] = [];

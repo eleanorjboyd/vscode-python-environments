@@ -7,11 +7,11 @@ import {
     WorkspaceConfiguration,
     WorkspaceFolder,
 } from 'vscode';
-import { PythonProject } from '../../api';
 import { DEFAULT_ENV_MANAGER_ID, DEFAULT_PACKAGE_MANAGER_ID } from '../../common/constants';
 import { traceError, traceInfo, traceWarn } from '../../common/logging';
 import { getWorkspaceFile, getWorkspaceFolders } from '../../common/workspace.apis';
 import { PythonProjectManager, PythonProjectSettings } from '../../internal.api';
+import { PythonProject } from '../../proposedApis';
 
 function getSettings(
     wm: PythonProjectManager,

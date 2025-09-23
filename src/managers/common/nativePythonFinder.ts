@@ -4,7 +4,6 @@ import * as path from 'path';
 import { PassThrough } from 'stream';
 import { Disposable, ExtensionContext, LogOutputChannel, Uri } from 'vscode';
 import * as rpc from 'vscode-jsonrpc/node';
-import { PythonProjectApi } from '../../api';
 import { ENVS_EXTENSION_ID, PYTHON_EXTENSION_ID } from '../../common/constants';
 import { getExtension } from '../../common/extension.apis';
 import { traceVerbose } from '../../common/logging';
@@ -12,6 +11,7 @@ import { untildify } from '../../common/utils/pathUtils';
 import { isWindows } from '../../common/utils/platformUtils';
 import { createRunningWorkerPool, WorkerPool } from '../../common/utils/workerPool';
 import { getConfiguration } from '../../common/workspace.apis';
+import { PythonProjectApi } from '../../proposedApis';
 import { noop } from './utils';
 
 export async function getNativePythonToolsPath(): Promise<string> {
