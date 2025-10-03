@@ -5,6 +5,7 @@ import * as sinon from 'sinon';
 import * as typeMoq from 'typemoq';
 import { Disposable, GlobalEnvironmentVariableCollection, workspace, WorkspaceFolder } from 'vscode';
 import { DidChangeEnvironmentVariablesEventArgs } from '../../api';
+import * as workspaceApis from '../../common/workspace.apis';
 import { EnvVarManager } from '../../features/execution/envVariableManager';
 import { TerminalEnvVarInjector } from '../../features/terminal/terminalEnvVarInjector';
 
@@ -56,7 +57,7 @@ suite('TerminalEnvVarInjector Basic Tests', () => {
             });
 
         // Mock workspace.onDidChangeConfiguration to return a Disposable
-        sinon.stub(workspace, 'onDidChangeConfiguration').returns({
+        sinon.stub(workspaceApis, 'onDidChangeConfiguration').returns({
             dispose: () => {},
         } as Disposable);
     });
@@ -102,7 +103,7 @@ suite('TerminalEnvVarInjector Basic Tests', () => {
             });
 
         // Mock workspace.onDidChangeConfiguration to return a Disposable
-        sinon.stub(workspace, 'onDidChangeConfiguration').returns({
+        sinon.stub(workspaceApis, 'onDidChangeConfiguration').returns({
             dispose: () => {},
         } as Disposable);
 

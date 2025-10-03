@@ -13,7 +13,7 @@ import {
 } from 'vscode';
 import { traceError, traceVerbose } from '../../common/logging';
 import { resolveVariables } from '../../common/utils/internalVariables';
-import { getConfiguration, getWorkspaceFolder } from '../../common/workspace.apis';
+import { getConfiguration, getWorkspaceFolder, onDidChangeConfiguration } from '../../common/workspace.apis';
 import { EnvVarManager } from '../execution/envVariableManager';
 
 /**
@@ -81,7 +81,7 @@ export class TerminalEnvVarInjector implements Disposable {
 
         // Listen for changes to the python.envFile setting
         this.disposables.push(
-            workspace.onDidChangeConfiguration((e) => {
+            onDidChangeConfiguration((e) => {
                 if (e.affectsConfiguration('python.envFile')) {
                     traceVerbose(
                         'TerminalEnvVarInjector: python.envFile setting changed, updating environment variables',
