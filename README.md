@@ -330,13 +330,13 @@ contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additio
 
 ## Questions, issues, feature requests, and contributions
 
--   If you have a question about how to accomplish something with the extension, please [ask on our Discussions page](https://github.com/microsoft/vscode-python/discussions/categories/q-a).
--   If you come across a problem with the extension, please [file an issue](https://github.com/microsoft/vscode-python).
--   Contributions are always welcome! Please see our [contributing guide](https://github.com/Microsoft/vscode-python/blob/main/CONTRIBUTING.md) for more details.
+-   If you have a question about how to accomplish something with the extension, please [ask on our Discussions page](https://github.com/microsoft/vscode-python-environments/discussions).
+-   If you come across a problem with the extension, please [file an issue](https://github.com/microsoft/vscode-python-environments/issues).
+-   Contributions are always welcome! Please see our [contributing guide](./CONTRIBUTING.md) for setup instructions, development guidelines, and how to submit pull requests.
 -   Any and all feedback is appreciated and welcome!
-    -   If someone has already [filed an issue](https://github.com/Microsoft/vscode-python) that encompasses your feedback, please leave a 👍/👎 reaction on the issue.
-    -   Otherwise please start a [new discussion](https://github.com/microsoft/vscode-python/discussions/categories/ideas).
--   If you're interested in the development of the extension, you can read about our [development process](https://github.com/Microsoft/vscode-python/blob/main/CONTRIBUTING.md#development-process).
+    -   If someone has already [filed an issue](https://github.com/microsoft/vscode-python-environments/issues) that encompasses your feedback, please leave a 👍/👎 reaction on the issue.
+    -   Otherwise please start a [new discussion](https://github.com/microsoft/vscode-python-environments/discussions).
+-   If you're interested in the development of the extension, see our [CONTRIBUTING.md](./CONTRIBUTING.md) for the development process and workflow.
 
 ## Data and telemetry
 
