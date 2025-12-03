@@ -1,9 +1,12 @@
-import assert from 'assert';
+// 1. Imports - group logically
+import assert from 'node:assert';
 import * as sinon from 'sinon';
 import { CancellationError, CancellationToken, LogOutputChannel, Progress } from 'vscode';
 import { DidChangePackagesEventArgs, Package, PackageChangeKind, PythonEnvironment, PythonEnvironmentApi } from '../../../api';
 import * as winapi from '../../../common/window.apis';
 import * as condaUtils from '../../../managers/conda/condaUtils';
+
+// 2. Function under test
 import { CondaPackageManager } from '../../../managers/conda/condaPackageManager';
 
 suite('CondaPackageManager Unit Tests', () => {
@@ -39,9 +42,9 @@ suite('CondaPackageManager Unit Tests', () => {
         packageManager.dispose();
     });
 
-    suite('Test 1: getChanges function', () => {
-        test('should detect added packages', () => {
-            // This tests the internal getChanges function indirectly through refresh
+    suite('getChanges function', () => {
+        test('should detect package additions when refreshing empty environment', () => {
+            // Mock - Set up environment and mock responses
             const env: PythonEnvironment = {
                 envId: { id: 'test-env' },
             } as PythonEnvironment;
@@ -56,14 +59,15 @@ suite('CondaPackageManager Unit Tests', () => {
                 firedEvent = e;
             });
 
-            // Mock withProgress to execute callback immediately
             withProgressStub.callsFake(async (_options, callback) => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
 
             refreshPackagesStub.resolves(after);
 
+            // Run - Execute refresh
             return packageManager.refresh(env).then(() => {
+                // Assert - Verify changes detected correctly
                 assert.ok(firedEvent, 'Event should be fired');
                 assert.strictEqual(firedEvent!.changes.length, 2, 'Should detect 2 additions');
                 assert.strictEqual(firedEvent!.changes[0].kind, PackageChangeKind.add);
@@ -71,7 +75,8 @@ suite('CondaPackageManager Unit Tests', () => {
             });
         });
 
-        test('should detect removed packages', () => {
+        test('should detect package removals when packages are uninstalled', () => {
+            // Mock - Set up environment with existing packages
             const env: PythonEnvironment = {
                 envId: { id: 'test-env' },
             } as PythonEnvironment;
@@ -87,20 +92,20 @@ suite('CondaPackageManager Unit Tests', () => {
                 firedEvent = e;
             });
 
-            // Mock withProgress to execute callback immediately
             withProgressStub.callsFake(async (_options, callback) => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
 
-            // First refresh to set initial state
             refreshPackagesStub.resolves(before);
+            
+            // Run - First refresh to set initial state
             return packageManager.refresh(env).then(() => {
-                // Reset event
                 firedEvent = undefined;
-
-                // Second refresh with empty packages
                 refreshPackagesStub.resolves(after);
+                
+                // Run - Second refresh with empty packages
                 return packageManager.refresh(env).then(() => {
+                    // Assert - Verify removals detected
                     assert.ok(firedEvent, 'Event should be fired');
                     assert.strictEqual(firedEvent!.changes.length, 2, 'Should detect 2 removals');
                     assert.strictEqual(firedEvent!.changes[0].kind, PackageChangeKind.remove);
@@ -109,7 +114,8 @@ suite('CondaPackageManager Unit Tests', () => {
             });
         });
 
-        test('should detect both additions and removals', () => {
+        test('should detect both package additions and removals when packages change', () => {
+            // Mock - Set up environment with one package
             const env: PythonEnvironment = {
                 envId: { id: 'test-env' },
             } as PythonEnvironment;
@@ -126,20 +132,20 @@ suite('CondaPackageManager Unit Tests', () => {
                 firedEvent = e;
             });
 
-            // Mock withProgress to execute callback immediately
             withProgressStub.callsFake(async (_options, callback) => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
 
-            // First refresh to set initial state
             refreshPackagesStub.resolves(before);
+            
+            // Run - First refresh to set initial state
             return packageManager.refresh(env).then(() => {
-                // Reset event
                 firedEvent = undefined;
-
-                // Second refresh with different packages
                 refreshPackagesStub.resolves(after);
+                
+                // Run - Second refresh with different packages
                 return packageManager.refresh(env).then(() => {
+                    // Assert - Verify both additions and removals
                     assert.ok(firedEvent, 'Event should be fired');
                     assert.strictEqual(firedEvent!.changes.length, 2, 'Should detect 1 removal and 1 addition');
                     
@@ -155,8 +161,9 @@ suite('CondaPackageManager Unit Tests', () => {
         });
     });
 
-    suite('Test 2: CondaPackageManager.manage', () => {
-        test('should install packages when provided', async () => {
+    suite('CondaPackageManager.manage', () => {
+        test('should install packages when install list provided', async () => {
+            // Mock - Set up environment and install packages
             const env: PythonEnvironment = {
                 envId: { id: 'test-env' },
             } as PythonEnvironment;
@@ -165,44 +172,48 @@ suite('CondaPackageManager Unit Tests', () => {
                 { name: 'numpy', version: '1.21.0' } as Package,
             ];
 
-            // Mock withProgress to execute callback immediately
             withProgressStub.callsFake(async (_options, callback) => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
 
             managePackagesStub.resolves(packages);
 
+            // Run - Execute manage with install option
             await packageManager.manage(env, { install: ['numpy'] });
 
+            // Assert - Verify managePackages called correctly
             assert.ok(managePackagesStub.called, 'managePackages should be called');
             const args = managePackagesStub.firstCall.args;
             assert.strictEqual(args[0], env);
             assert.deepStrictEqual(args[1].install, ['numpy']);
         });
 
-        test('should uninstall packages when provided', async () => {
+        test('should uninstall packages when uninstall list provided', async () => {
+            // Mock - Set up environment and uninstall packages
             const env: PythonEnvironment = {
                 envId: { id: 'test-env' },
             } as PythonEnvironment;
 
             const packages: Package[] = [];
 
-            // Mock withProgress to execute callback immediately
             withProgressStub.callsFake(async (_options, callback) => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
 
             managePackagesStub.resolves(packages);
 
+            // Run - Execute manage with uninstall option
             await packageManager.manage(env, { uninstall: ['numpy'] });
 
+            // Assert - Verify managePackages called correctly
             assert.ok(managePackagesStub.called, 'managePackages should be called');
             const args = managePackagesStub.firstCall.args;
             assert.strictEqual(args[0], env);
             assert.deepStrictEqual(args[1].uninstall, ['numpy']);
         });
 
-        test('should prompt user when no packages specified', async () => {
+        test('should prompt user for packages when none specified', async () => {
+            // Mock - Set up environment without packages
             const env: PythonEnvironment = {
                 envId: { id: 'test-env' },
             } as PythonEnvironment;
@@ -211,7 +222,6 @@ suite('CondaPackageManager Unit Tests', () => {
                 { name: 'pytest', version: '7.0.0' } as Package,
             ];
 
-            // Mock withProgress to execute callback immediately
             withProgressStub.callsFake(async (_options, callback) => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
@@ -219,31 +229,36 @@ suite('CondaPackageManager Unit Tests', () => {
             getCommonCondaPackagesToInstallStub.resolves({ install: ['pytest'], uninstall: [] });
             managePackagesStub.resolves(packages);
 
+            // Run - Execute manage without packages
             await packageManager.manage(env, {} as any);
 
+            // Assert - Verify user was prompted
             assert.ok(getCommonCondaPackagesToInstallStub.called, 'Should prompt user for packages');
             assert.ok(managePackagesStub.called, 'managePackages should be called');
         });
 
-        test('should handle cancellation gracefully', async () => {
+        test('should not install when user cancels package selection', async () => {
+            // Mock - Set up cancellation scenario
             const env: PythonEnvironment = {
                 envId: { id: 'test-env' },
             } as PythonEnvironment;
 
             getCommonCondaPackagesToInstallStub.resolves(undefined);
 
-            // Mock withProgress to execute callback immediately
             withProgressStub.callsFake(async (_options, callback) => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
 
+            // Run - Execute manage without packages (user cancels)
             await packageManager.manage(env, {} as any);
 
+            // Assert - Verify operation was cancelled
             assert.ok(getCommonCondaPackagesToInstallStub.called, 'Should prompt user');
             assert.ok(!managePackagesStub.called, 'Should not call managePackages when user cancels');
         });
 
-        test('should emit event after managing packages', async () => {
+        test('should emit onDidChangePackages event after successful package management', async () => {
+            // Mock - Set up environment and event listener
             const env: PythonEnvironment = {
                 envId: { id: 'test-env' },
             } as PythonEnvironment;
@@ -257,51 +272,55 @@ suite('CondaPackageManager Unit Tests', () => {
                 firedEvent = e;
             });
 
-            // Mock withProgress to execute callback immediately
             withProgressStub.callsFake(async (_options, callback) => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
 
             managePackagesStub.resolves(afterPackages);
 
+            // Run - Execute manage
             await packageManager.manage(env, { install: ['numpy'] });
 
+            // Assert - Verify event was emitted
             assert.ok(firedEvent, 'Event should be fired');
             assert.strictEqual(firedEvent!.environment, env);
             assert.strictEqual(firedEvent!.manager, packageManager);
         });
 
-        test('should handle errors and log them', async () => {
+        test('should log errors when package management fails', async () => {
+            // Mock - Set up error scenario
             const env: PythonEnvironment = {
                 envId: { id: 'test-env' },
             } as PythonEnvironment;
 
             const error = new Error('Installation failed');
 
-            // Mock withProgress to execute callback immediately
             withProgressStub.callsFake(async (_options, callback) => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
 
             managePackagesStub.rejects(error);
 
+            // Run - Execute manage with error
             await packageManager.manage(env, { install: ['numpy'] });
 
+            // Assert - Verify error was logged
             assert.ok((mockLog.error as sinon.SinonStub).called, 'Should log error');
         });
 
-        test('should re-throw CancellationError', async () => {
+        test('should re-throw CancellationError without logging', async () => {
+            // Mock - Set up cancellation scenario
             const env: PythonEnvironment = {
                 envId: { id: 'test-env' },
             } as PythonEnvironment;
 
-            // Mock withProgress to execute callback immediately
             withProgressStub.callsFake(async (_options, callback) => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
 
             managePackagesStub.rejects(new CancellationError());
 
+            // Run & Assert - Verify CancellationError is propagated
             await assert.rejects(
                 async () => packageManager.manage(env, { install: ['numpy'] }),
                 CancellationError,
@@ -310,8 +329,9 @@ suite('CondaPackageManager Unit Tests', () => {
         });
     });
 
-    suite('Test 3: CondaPackageManager.refresh', () => {
-        test('should refresh packages and update cache', async () => {
+    suite('CondaPackageManager.refresh', () => {
+        test('should fetch packages and update internal cache', async () => {
+            // Mock - Set up environment with packages
             const env: PythonEnvironment = {
                 envId: { id: 'test-env' },
             } as PythonEnvironment;
@@ -321,23 +341,24 @@ suite('CondaPackageManager Unit Tests', () => {
                 { name: 'pandas', version: '1.3.0' } as Package,
             ];
 
-            // Mock withProgress to execute callback immediately
             withProgressStub.callsFake(async (_options, callback) => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
 
             refreshPackagesStub.resolves(packages);
 
+            // Run - Execute refresh
             await packageManager.refresh(env);
 
+            // Assert - Verify packages fetched and cached
             assert.ok(refreshPackagesStub.called, 'refreshPackages should be called');
             
-            // Verify packages are cached
             const cached = await packageManager.getPackages(env);
             assert.strictEqual(cached?.length, 2);
         });
 
-        test('should emit event when packages change', async () => {
+        test('should emit onDidChangePackages event when packages are modified', async () => {
+            // Mock - Set up environment and event listener
             const env: PythonEnvironment = {
                 envId: { id: 'test-env' },
             } as PythonEnvironment;
@@ -351,19 +372,21 @@ suite('CondaPackageManager Unit Tests', () => {
                 firedEvent = e;
             });
 
-            // Mock withProgress to execute callback immediately
             withProgressStub.callsFake(async (_options, callback) => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
 
             refreshPackagesStub.resolves(packages);
 
+            // Run - Execute refresh
             await packageManager.refresh(env);
 
+            // Assert - Verify event was emitted
             assert.ok(firedEvent, 'Event should be fired when packages change');
         });
 
-        test('should not emit event when packages unchanged', async () => {
+        test('should not emit event when package list remains unchanged', async () => {
+            // Mock - Set up environment with no packages
             const env: PythonEnvironment = {
                 envId: { id: 'test-env' },
             } as PythonEnvironment;
@@ -375,22 +398,24 @@ suite('CondaPackageManager Unit Tests', () => {
                 eventCount++;
             });
 
-            // Mock withProgress to execute callback immediately
             withProgressStub.callsFake(async (_options, callback) => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
 
             refreshPackagesStub.resolves(packages);
 
+            // Run - Execute refresh twice with no changes
             await packageManager.refresh(env);
             await packageManager.refresh(env);
 
+            // Assert - Verify event was not emitted
             assert.strictEqual(eventCount, 0, 'Should not emit event when no changes');
         });
     });
 
-    suite('Test 4: CondaPackageManager.getPackages', () => {
-        test('should return cached packages if available', async () => {
+    suite('CondaPackageManager.getPackages', () => {
+        test('should use cached packages when available', async () => {
+            // Mock - Set up environment with cached packages
             const env: PythonEnvironment = {
                 envId: { id: 'test-env' },
             } as PythonEnvironment;
@@ -399,27 +424,25 @@ suite('CondaPackageManager Unit Tests', () => {
                 { name: 'numpy', version: '1.21.0' } as Package,
             ];
 
-            // Mock withProgress to execute callback immediately
             withProgressStub.callsFake(async (_options, callback) => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
 
             refreshPackagesStub.resolves(packages);
 
-            // First call should trigger refresh
             await packageManager.refresh(env);
-            
-            // Reset stub to verify it's not called again
             refreshPackagesStub.resetHistory();
 
-            // Second call should use cache
+            // Run - Get packages from cache
             const result = await packageManager.getPackages(env);
 
+            // Assert - Verify cache was used
             assert.strictEqual(result?.length, 1);
             assert.ok(!refreshPackagesStub.called, 'Should not call refresh when packages are cached');
         });
 
-        test('should refresh if packages not cached', async () => {
+        test('should trigger refresh when packages not in cache', async () => {
+            // Mock - Set up environment without cached packages
             const env: PythonEnvironment = {
                 envId: { id: 'test-env' },
             } as PythonEnvironment;
@@ -428,20 +451,22 @@ suite('CondaPackageManager Unit Tests', () => {
                 { name: 'numpy', version: '1.21.0' } as Package,
             ];
 
-            // Mock withProgress to execute callback immediately
             withProgressStub.callsFake(async (_options, callback) => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
 
             refreshPackagesStub.resolves(packages);
 
+            // Run - Get packages without cache
             const result = await packageManager.getPackages(env);
 
+            // Assert - Verify refresh was triggered
             assert.ok(refreshPackagesStub.called, 'Should call refresh when packages not cached');
             assert.strictEqual(result?.length, 1);
         });
 
-        test('should handle multiple environments separately', async () => {
+        test('should maintain separate package caches for different environments', async () => {
+            // Mock - Set up two different environments
             const env1: PythonEnvironment = {
                 envId: { id: 'env1' },
             } as PythonEnvironment;
@@ -458,7 +483,6 @@ suite('CondaPackageManager Unit Tests', () => {
                 { name: 'pandas', version: '1.3.0' } as Package,
             ];
 
-            // Mock withProgress to execute callback immediately
             withProgressStub.callsFake(async (_options, callback) => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
@@ -466,9 +490,11 @@ suite('CondaPackageManager Unit Tests', () => {
             refreshPackagesStub.onFirstCall().resolves(packages1);
             refreshPackagesStub.onSecondCall().resolves(packages2);
 
+            // Run - Get packages for both environments
             const result1 = await packageManager.getPackages(env1);
             const result2 = await packageManager.getPackages(env2);
 
+            // Assert - Verify each environment has its own cache
             assert.strictEqual(result1?.length, 1);
             assert.strictEqual(result1?.[0].name, 'numpy');
             assert.strictEqual(result2?.length, 1);
@@ -476,16 +502,20 @@ suite('CondaPackageManager Unit Tests', () => {
         });
     });
 
-    suite('Test 5: CondaPackageManager.dispose', () => {
-        test('should dispose event emitter', () => {
+    suite('CondaPackageManager.dispose', () => {
+        test('should clean up event emitter on disposal', () => {
+            // Mock - Spy on dispose method
             const disposeStub = sinon.stub(packageManager['_onDidChangePackages'], 'dispose');
 
+            // Run - Dispose package manager
             packageManager.dispose();
 
+            // Assert - Verify cleanup occurred
             assert.ok(disposeStub.called, 'Should dispose event emitter');
         });
 
-        test('should clear packages cache', () => {
+        test('should clear all cached packages on disposal', () => {
+            // Mock - Set up environment with cached packages
             const env: PythonEnvironment = {
                 envId: { id: 'test-env' },
             } as PythonEnvironment;
@@ -494,24 +524,25 @@ suite('CondaPackageManager Unit Tests', () => {
                 { name: 'numpy', version: '1.21.0' } as Package,
             ];
 
-            // Mock withProgress to execute callback immediately
             withProgressStub.callsFake(async (_options, callback) => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
 
             refreshPackagesStub.resolves(packages);
 
+            // Run - Cache packages then dispose
             return packageManager.refresh(env).then(() => {
                 packageManager.dispose();
 
-                // Verify cache is cleared by checking the internal map
+                // Assert - Verify cache was cleared
                 assert.strictEqual(packageManager['packages'].size, 0, 'Should clear packages cache');
             });
         });
     });
 
-    suite('Test 6: Event emission', () => {
-        test('should fire onDidChangePackages event with correct arguments', async () => {
+    suite('Event emission', () => {
+        test('should include environment, manager, and changes in emitted event', async () => {
+            // Mock - Set up environment and event listener
             const env: PythonEnvironment = {
                 envId: { id: 'test-env' },
             } as PythonEnvironment;
@@ -525,22 +556,24 @@ suite('CondaPackageManager Unit Tests', () => {
                 firedEvent = e;
             });
 
-            // Mock withProgress to execute callback immediately
             withProgressStub.callsFake(async (_options, callback) => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
 
             refreshPackagesStub.resolves(packages);
 
+            // Run - Trigger event
             await packageManager.refresh(env);
 
+            // Assert - Verify event contains all required information
             assert.ok(firedEvent, 'Event should be fired');
             assert.strictEqual(firedEvent!.environment, env, 'Event should include environment');
             assert.strictEqual(firedEvent!.manager, packageManager, 'Event should include manager');
             assert.ok(Array.isArray(firedEvent!.changes), 'Event should include changes array');
         });
 
-        test('should support multiple event listeners', async () => {
+        test('should notify all registered listeners when event fires', async () => {
+            // Mock - Set up environment and multiple listeners
             const env: PythonEnvironment = {
                 envId: { id: 'test-env' },
             } as PythonEnvironment;
@@ -560,20 +593,22 @@ suite('CondaPackageManager Unit Tests', () => {
                 listener2Called = true;
             });
 
-            // Mock withProgress to execute callback immediately
             withProgressStub.callsFake(async (_options, callback) => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
 
             refreshPackagesStub.resolves(packages);
 
+            // Run - Trigger event
             await packageManager.refresh(env);
 
+            // Assert - Verify all listeners were notified
             assert.ok(listener1Called, 'First listener should be called');
             assert.ok(listener2Called, 'Second listener should be called');
         });
 
-        test('should include package changes in event', async () => {
+        test('should provide detailed package change information in event', async () => {
+            // Mock - Set up environment with multiple packages
             const env: PythonEnvironment = {
                 envId: { id: 'test-env' },
             } as PythonEnvironment;
@@ -588,15 +623,16 @@ suite('CondaPackageManager Unit Tests', () => {
                 firedEvent = e;
             });
 
-            // Mock withProgress to execute callback immediately
             withProgressStub.callsFake(async (_options, callback) => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
 
             refreshPackagesStub.resolves(packages);
 
+            // Run - Trigger event with multiple packages
             await packageManager.refresh(env);
 
+            // Assert - Verify event contains detailed change information
             assert.ok(firedEvent, 'Event should be fired');
             assert.strictEqual(firedEvent!.changes.length, 2, 'Should include all package changes');
             assert.strictEqual(firedEvent!.changes[0].kind, PackageChangeKind.add);
