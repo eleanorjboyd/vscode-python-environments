@@ -574,3 +574,8 @@ envConfig.inspect
 -   Untestable Node.js APIs → Create proxy abstraction functions (use function overloads to preserve intelligent typing while making functions mockable)
 
 ## 🧠 Agent Learnings
+
+-   When testing event-driven code, account for async event propagation using `setImmediate` or appropriate timing mechanisms if the implementation uses async event firing (1)
+-   Trivial delegation tests that only verify mock setup provide little value - focus on tests that verify actual behavior, error handling, edge cases, and integration scenarios (1)
+-   TypeMoq mocks are treated as thenables due to Proxy implementation - use helper function like `setupNonThenable()` to prevent Promise resolution issues (1)
+-   When removing `any` type from TypeScript, use type intersections for error objects (`Error & { code: string }`) and type assertions with optional properties when catching errors (1)
