@@ -1,0 +1,80 @@
+Terminal Directory Coverage Analysis Summary
+=============================================
+Date: 2025-12-03
+Directory: src/features/terminal
+
+OVERALL COVERAGE METRICS
+-------------------------
+Statement Coverage: 9.28%
+Branch Coverage:    67.1%
+Function Coverage:  17.64%
+Line Coverage:      9.28%
+
+TOTAL FILES: 24
+- Files with tests: 3 (12.5%)
+- Files without tests: 21 (87.5%)
+
+BREAKDOWN BY CATEGORY
+---------------------
+
+Terminal Root Files (8 files):
+  activateMenuButton.ts                      0% coverage    (18 lines)
+  runInTerminal.ts                      16.98% coverage    (53 lines)
+  shellStartupActivationVariablesManager.ts  0% coverage   (111 lines)
+  shellStartupSetupHandlers.ts               0% coverage    (70 lines)
+  terminalActivationState.ts                 0% coverage   (287 lines)
+  terminalEnvVarInjector.ts             38.13% coverage   (~200 lines)
+  terminalManager.ts                         0% coverage   (451 lines)
+  utils.ts                              33.44% coverage   (~300 lines)
+
+Shell Provider Files (3 files):
+  shells/providers.ts                        0% coverage    (45 lines)
+  shells/startupProvider.ts                  0% coverage    (30 lines)
+  shells/utils.ts                            0% coverage    (18 lines)
+
+Shell Common Files (2 files):
+  shells/common/editUtils.ts            97.43% coverage   (~75 lines) ✓
+  shells/common/shellUtils.ts           20.85% coverage  (~160 lines)
+
+Shell Implementation Files (11 files):
+  All Bash, CMD, Fish, PowerShell files:     0% coverage
+
+PRIORITY RANKINGS
+-----------------
+
+HIGH PRIORITY (Must have tests):
+1. terminalManager.ts (451 lines, 0%)
+2. terminalActivationState.ts (287 lines, 0%)
+3. runInTerminal.ts (53 lines, 17%)
+4. terminalEnvVarInjector.ts (~200 lines, 38%)
+5. activateMenuButton.ts (18 lines, 0%)
+
+MEDIUM PRIORITY (Should have tests):
+6. shellStartupActivationVariablesManager.ts (111 lines, 0%)
+7. shellStartupSetupHandlers.ts (70 lines, 0%)
+8. shells/common/shellUtils.ts (~160 lines, 21%)
+9. Shell provider files (3 files)
+10. Shell implementation files (8 files)
+
+LOW PRIORITY (Nice to have):
+11. Constants files (5 files)
+12. shells/utils.ts (18 lines)
+
+EXISTING TESTS
+--------------
+✓ src/test/features/terminal/utils.unit.test.ts
+✓ src/test/features/terminal/shells/common/editUtils.unit.test.ts
+✓ src/test/features/terminal/shells/common/shellUtils.unit.test.ts
+
+COVERAGE COMMAND
+----------------
+npx c8 --all --reporter=text --reporter=html \
+  --include='out/features/terminal/**/*.js' \
+  --exclude='out/features/terminal/**/*.test.js' \
+  --exclude='out/features/terminal/**/*.unit.test.js' \
+  npm run unittest
+
+DOCUMENTATION
+-------------
+Full Analysis: COVERAGE_ANALYSIS_TERMINAL.md
+Quick Reference: COVERAGE_QUICK_REF.md

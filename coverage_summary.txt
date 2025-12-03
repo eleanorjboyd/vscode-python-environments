@@ -1,0 +1,393 @@
+
+> vscode-python-envs@1.12.0 unittest
+> mocha --config=./build/.mocha.unittests.json
+
+
+[0m[0m
+[0m  Environment Picker Description Logic[0m
+[0m    Description formatting with interpreter path[0m
+    [32m  ✔[0m[90m should use displayPath as description when no original description exists[0m
+    [32m  ✔[0m[90m should append displayPath to existing description in parentheses[0m
+    [32m  ✔[0m[90m should handle complex paths correctly[0m
+    [32m  ✔[0m[90m should handle empty description correctly[0m
+    [32m  ✔[0m[90m should handle Windows paths correctly[0m
+
+[0m  Internal Variable substitution[0m
+  [32m  ✔[0m[90m Resolve ${userHome}[0m
+  [32m  ✔[0m[90m Resolve ${pythonProject}[0m
+  [32m  ✔[0m[90m Resolve ${workspaceFolder}[0m
+  [32m  ✔[0m[90m Resolve ${workspaceFolder:workspace1}[0m
+  [32m  ✔[0m[90m Resolve ${cwd}[0m
+  [32m  ✔[0m[90m Resolve ${env:HOME}[0m
+
+[0m  Path Utilities[0m
+[0m    getResourceUri[0m
+    [32m  ✔[0m[90m returns undefined when path is empty[0m
+    [32m  ✔[0m[90m returns undefined when path is undefined[0m
+    [32m  ✔[0m[90m creates file URI from normal file path[0m
+    [36m  - creates file URI from Windows path[0m
+    [32m  ✔[0m[90m parses existing URI correctly[0m
+    [32m  ✔[0m[90m handles exception and returns undefined[0m
+    [32m  ✔[0m[90m handles relative paths by resolving against the provided root[0m
+[0m    normalizePath[0m
+    [32m  ✔[0m[90m replaces backslashes with forward slashes[0m
+    [32m  ✔[0m[90m converts to lowercase on Windows[0m
+    [32m  ✔[0m[90m preserves case on non-Windows[0m
+
+[0m  Copy Path To Clipboard[0m
+  [32m  ✔[0m[90m Copy project path to clipboard[0m
+  [32m  ✔[0m[90m Copy env path to clipboard: project view[0m
+  [32m  ✔[0m[90m Copy env path to clipboard: env manager view[0m
+  [32m  ✔[0m[90m Copy conda env path to clipboard: should copy interpreter path not conda run command[0m
+  [32m  ✔[0m[90m Copy conda prefix env path to clipboard: should copy interpreter path not conda run command[0m
+
+[0m  Shell Detector[0m
+  [32m  ✔[0m[90m Detect sh[0m
+  [32m  ✔[0m[90m Detect bash[0m
+  [32m  ✔[0m[90m Detect powershell[0m
+  [32m  ✔[0m[90m Detect pwsh[0m
+  [32m  ✔[0m[90m Detect powershellcore[0m
+  [32m  ✔[0m[90m Detect cmd[0m
+  [32m  ✔[0m[90m Detect commandPrompt[0m
+  [32m  ✔[0m[90m Detect gitbash[0m
+  [32m  ✔[0m[90m Detect zsh[0m
+  [32m  ✔[0m[90m Detect ksh[0m
+  [32m  ✔[0m[90m Detect fish[0m
+  [32m  ✔[0m[90m Detect csh[0m
+  [32m  ✔[0m[90m Detect cshell[0m
+  [32m  ✔[0m[90m Detect tcsh[0m
+  [32m  ✔[0m[90m Detect tcshell[0m
+  [32m  ✔[0m[90m Detect nu[0m
+  [32m  ✔[0m[90m Detect nushell[0m
+  [32m  ✔[0m[90m Detect wsl[0m
+  [32m  ✔[0m[90m Detect xonsh[0m
+
+[0m  Auto Find Project tests[0m
+  [32m  ✔[0m[90m No projects found[0m
+  [32m  ✔[0m[90m No projects found (undefined)[0m
+  [32m  ✔[0m[90m Projects found[0m
+  [32m  ✔[0m[90m Projects found (with duplicates)[0m
+  [32m  ✔[0m[90m Projects found (with all duplicates)[0m
+  [32m  ✔[0m[90m Projects found no selection[0m
+  [32m  ✔[0m[90m Projects found with no selection (user hit escape in picker)[0m
+  [32m  ✔[0m[90m Projects found with selection[0m
+
+[0m  Create Any Environment Command Tests[0m
+  [32m  ✔[0m[90m Create global venv (no-workspace): no-select[0m
+  [32m  ✔[0m[90m Create global venv (no-workspace): select[0m
+  [32m  ✔[0m[90m Create workspace venv: no-select[0m
+  [32m  ✔[0m[90m Create workspace venv: select[0m
+  [32m  ✔[0m[90m Create multi-workspace venv: select all[0m
+  [32m  ✔[0m[90m Create multi-workspace venv: select some[0m
+
+[0m  Execution Utils Tests[0m
+[0m    quoteStringIfNecessary[0m
+    [32m  ✔[0m[90m should not quote string without spaces[0m
+    [32m  ✔[0m[90m should not quote string without spaces containing special characters[0m
+    [32m  ✔[0m[90m should quote string with spaces[0m
+    [32m  ✔[0m[90m should quote path with spaces[0m
+    [32m  ✔[0m[90m should not double-quote already quoted string[0m
+    [32m  ✔[0m[90m should not double-quote already quoted string with spaces[0m
+    [32m  ✔[0m[90m should quote string with space that is partially quoted[0m
+    [32m  ✔[0m[90m should quote string with space that ends with quote[0m
+    [32m  ✔[0m[90m should handle empty string[0m
+    [32m  ✔[0m[90m should handle string with only spaces[0m
+    [32m  ✔[0m[90m should handle string with leading space[0m
+    [32m  ✔[0m[90m should handle string with trailing space[0m
+    [32m  ✔[0m[90m should handle string with multiple spaces[0m
+    [32m  ✔[0m[90m should not quote single character without space[0m
+    [32m  ✔[0m[90m should handle dash and hyphen characters without spaces[0m
+[0m    quoteArgs[0m
+    [32m  ✔[0m[90m should return empty array for empty input[0m
+    [32m  ✔[0m[90m should not quote args without spaces[0m
+    [32m  ✔[0m[90m should quote args with spaces[0m
+    [32m  ✔[0m[90m should handle mixed args with and without spaces[0m
+    [32m  ✔[0m[90m should not double-quote already quoted args[0m
+    [32m  ✔[0m[90m should handle array with single element[0m
+    [32m  ✔[0m[90m should handle paths correctly[0m
+    [32m  ✔[0m[90m should handle command line flags and values[0m
+    [32m  ✔[0m[90m should handle empty strings in array[0m
+    [32m  ✔[0m[90m should preserve order of arguments[0m
+
+[0m  runAsTask Tests[0m
+[0m    Happy Path Scenarios[0m
+    [32m  ✔[0m[90m should create and execute task with activated run configuration[0m
+    [32m  ✔[0m[90m should create and execute task with regular run configuration when no activatedRun[0m
+    [32m  ✔[0m[90m should handle custom reveal option[0m
+[0m    Edge Cases[0m
+    [32m  ✔[0m[90m should handle environment without execInfo[0m
+    [32m  ✔[0m[90m should handle environment with empty execInfo run args[0m
+    [32m  ✔[0m[90m should handle options with no args[0m
+    [32m  ✔[0m[90m should handle executable paths with spaces requiring quoting[0m
+[0m    Workspace Resolution[0m
+    [32m  ✔[0m[90m should use workspace folder when project URI is provided[0m
+    [32m  ✔[0m[90m should use global scope when no workspace folder found[0m
+[0m    Task Configuration[0m
+    [32m  ✔[0m[90m should correctly combine environment and option args[0m
+    [32m  ✔[0m[90m should pass through cwd and env options to shell execution[0m
+[0m    Error Scenarios[0m
+    [32m  ✔[0m[90m should propagate task execution failures[0m
+[0m    Integration Scenarios[0m
+    [32m  ✔[0m[90m should work with minimal environment and options[0m
+    [32m  ✔[0m[90m should handle complex real-world scenario[0m
+
+[0m  runInBackground Function Tests[0m
+[0m    Executable and Args Logic[0m
+    [32m  ✔[0m[90m should prefer activatedRun executable over run executable[0m
+    [32m  ✔[0m[90m should fallback to run executable when activatedRun not available[0m
+    [32m  ✔[0m[90m should fallback to "python" when no executable found[0m
+    [32m  ✔[0m[90m should remove quotes from executable path[0m
+    [32m  ✔[0m[90m should handle empty args arrays[0m
+    [32m  ✔[0m[90m should combine environment args with options args correctly[0m
+[0m    Logging Behavior[0m
+    [32m  ✔[0m[90m should have proper logging methods available[0m
+    [32m  ✔[0m[90m should have execUtils methods available[0m
+[0m    Environment Structure Tests[0m
+    [32m  ✔[0m[90m should create valid PythonEnvironment mock[0m
+    [32m  ✔[0m[90m should create PythonBackgroundRunOptions correctly[0m
+[0m    Edge Cases and Error Conditions[0m
+    [32m  ✔[0m[90m should handle missing execInfo gracefully[0m
+    [32m  ✔[0m[90m should handle partial execInfo configurations[0m
+    [32m  ✔[0m[90m should handle quote patterns correctly[0m
+
+[0m  Report Issue Command Tests[0m
+  [32m  ✔[0m[90m should handle environment collection with empty data[0m
+  [32m  ✔[0m[90m should handle environment collection with mock data[0m
+  [32m  ✔[0m[90m should handle errors gracefully during environment collection[0m
+  [32m  ✔[0m[90m should register report issue command[0m
+
+[0m  Shell Edit Utils[0m
+[0m    hasStartupCode[0m
+    [32m  ✔[0m[90m should return false when no markers exist[0m
+    [32m  ✔[0m[90m should return false when only start marker exists[0m
+    [32m  ✔[0m[90m should return false when only end marker exists[0m
+    [32m  ✔[0m[90m should return false when markers are in wrong order[0m
+    [32m  ✔[0m[90m should return false when content between markers is empty[0m
+    [32m  ✔[0m[90m should return false when key is not found between markers[0m
+    [32m  ✔[0m[90m should return true when key is found between markers[0m
+    [32m  ✔[0m[90m should return true when all keys are found between markers[0m
+    [32m  ✔[0m[90m should return false when not all keys are found between markers[0m
+    [32m  ✔[0m[90m should handle Windows line endings (CRLF) correctly[0m
+    [32m  ✔[0m[90m should handle mixed line endings correctly[0m
+[0m    insertStartupCode[0m
+    [32m  ✔[0m[90m should insert code at the end when no markers exist[0m
+    [32m  ✔[0m[90m should replace code between existing markers[0m
+    [32m  ✔[0m[90m should preserve content outside markers when replacing[0m
+    [32m  ✔[0m[90m should add new code when only start marker exists[0m
+    [32m  ✔[0m[90m should add new code when only end marker exists[0m
+    [32m  ✔[0m[90m should handle Windows line endings (CRLF) correctly[0m
+    [32m  ✔[0m[90m should preserve original line ending style when inserting[0m
+[0m    removeStartupCode[0m
+    [32m  ✔[0m[90m should return original content when no markers exist[0m
+    [32m  ✔[0m[90m should return original content when only start marker exists[0m
+    [32m  ✔[0m[90m should return original content when only end marker exists[0m
+    [32m  ✔[0m[90m should return original content when markers are in wrong order[0m
+    [32m  ✔[0m[90m should remove content between markers[0m
+    [32m  ✔[0m[90m should handle multiple lines of content between markers[0m
+    [32m  ✔[0m[90m should handle markers at beginning of content[0m
+    [32m  ✔[0m[90m should handle markers at end of content[0m
+    [32m  ✔[0m[90m should handle Windows line endings (CRLF) correctly[0m
+    [32m  ✔[0m[90m should preserve original line ending style when removing[0m
+
+[0m  Shell Utils[0m
+[0m    extractProfilePath[0m
+    [32m  ✔[0m[90m should return undefined when content is empty[0m
+    [32m  ✔[0m[90m should return undefined when content does not have tags[0m
+    [32m  ✔[0m[90m should return undefined when only start tag exists[0m
+    [32m  ✔[0m[90m should return undefined when only end tag exists[0m
+    [32m  ✔[0m[90m should return undefined when tags are in wrong order[0m
+    [32m  ✔[0m[90m should return undefined when content between tags is empty[0m
+    [32m  ✔[0m[90m should extract path when found between tags[0m
+    [32m  ✔[0m[90m should trim whitespace from extracted path[0m
+    [32m  ✔[0m[90m should handle Windows-style line endings[0m
+    [32m  ✔[0m[90m should extract path with special characters[0m
+    [32m  ✔[0m[90m should extract multiline content correctly[0m
+
+[0m  Terminal Utils - getAutoActivationType[0m
+[0m    Priority Order Tests[0m
+    [32m  ✔[0m[90m should return globalRemoteValue when set (highest priority)[0m
+    [32m  ✔[0m[90m should return globalLocalValue when globalRemoteValue is undefined[0m
+    [32m  ✔[0m[90m should return globalValue when both globalRemoteValue and globalLocalValue are undefined[0m
+    [32m  ✔[0m[90m should ignore globalLocalValue and globalValue when globalRemoteValue exists[0m
+    [32m  ✔[0m[90m should ignore globalValue when globalLocalValue exists[0m
+[0m    Custom Properties Handling[0m
+    [32m  ✔[0m[90m should handle case when globalRemoteValue property does not exist[0m
+    [32m  ✔[0m[90m should handle case when globalLocalValue property does not exist[0m
+    [32m  ✔[0m[90m should handle case when custom properties exist but are undefined[0m
+[0m    Legacy Python Setting Fallback[0m
+    [32m  ✔[0m[90m should return ACT_TYPE_OFF and update config when python.terminal.activateEnvironment is false[0m
+    [32m  ✔[0m[90m should return ACT_TYPE_COMMAND when python.terminal.activateEnvironment is true[0m
+    [32m  ✔[0m[90m should return ACT_TYPE_COMMAND when python.terminal.activateEnvironment is undefined[0m
+[0m    Fallback Scenarios[0m
+    [32m  ✔[0m[90m should return ACT_TYPE_COMMAND when no configuration exists[0m
+    [32m  ✔[0m[90m should return ACT_TYPE_COMMAND when python-envs config exists but all values are undefined[0m
+    [32m  ✔[0m[90m should prioritize python-envs settings over legacy python settings[0m
+[0m    Edge Cases[0m
+    [32m  ✔[0m[90m should handle null inspect result[0m
+    [32m  ✔[0m[90m should handle empty object inspect result[0m
+    [32m  ✔[0m[90m should handle all AutoActivationType values correctly[0m
+
+[0m  TerminalEnvVarInjector Basic Tests[0m
+  [32m  ✔[0m[90m should initialize without errors[0m
+  [32m  ✔[0m[90m should dispose cleanly[0m
+  [32m  ✔[0m[90m should register environment variable change event handler[0m
+
+[0m  Test TreeView Items[0m
+[0m    EnvManagerTreeItem[0m
+    [32m  ✔[0m[90m Context Value: no-create[0m
+    [32m  ✔[0m[90m Context Value: with create[0m
+    [32m  ✔[0m[90m Name is used[0m
+    [32m  ✔[0m[90m DisplayName is used[0m
+[0m    PythonEnvTreeItem[0m
+    [32m  ✔[0m[90m Context Value: no-remove, no-activate[0m
+    [32m  ✔[0m[90m Context Value: no-remove, with activate[0m
+    [32m  ✔[0m[90m Context Value: with remove, with activate[0m
+    [32m  ✔[0m[90m Context Value: with remove, no-activate[0m
+    [32m  ✔[0m[90m Display Name is used[0m
+
+[0m  Helpers - isUvInstalled[0m
+  [32m  ✔[0m[90m should return true when uv --version succeeds[0m
+  [32m  ✔[0m[90m should return false when uv --version fails with non-zero exit code[0m
+  [32m  ✔[0m[90m should return false when uv command is not found (error event)[0m
+  [32m  ✔[0m[90m should log uv --version command when logger provided[0m
+  [32m  ✔[0m[90m should work without logger[0m
+  [32m  ✔[0m[90m should return cached result on subsequent calls[0m
+  [32m  ✔[0m[90m should check uv installation again after cache reset[0m
+
+[0m  Helpers - shouldUseUv[0m
+  [32m  ✔[0m[90m should return true when alwaysUseUv is true and UV is installed[0m
+  [32m  ✔[0m[90m should return false when alwaysUseUv is false[0m
+  [32m  ✔[0m[90m should return true for UV environment path when UV is installed[0m
+  [32m  ✔[0m[90m should return false for non-UV environment when alwaysUseUv is false[0m
+  [32m  ✔[0m[90m should check setting when alwaysUseUv is true for non-UV environment[0m
+  [32m  ✔[0m[90m should use default value true when alwaysUseUv setting is not configured[0m
+  [32m  ✔[0m[90m should respect alwaysUseUv setting when no environment path provided[0m
+
+[0m  Process Editable Install Arguments Tests[0m
+  [32m  ✔[0m[90m should handle empty args array[0m
+  [32m  ✔[0m[90m should pass through non-editable install args unchanged[0m
+  [32m  ✔[0m[90m should pass through single -e argument unchanged[0m
+  [32m  ✔[0m[90m should pass through multiple unrelated -e arguments unchanged[0m
+  [32m  ✔[0m[90m should combine -e with extras correctly[0m
+  [32m  ✔[0m[90m should handle multiple editable installs with extras correctly[0m
+  [32m  ✔[0m[90m should handle mixed regular and editable installs correctly[0m
+  [32m  ✔[0m[90m should handle incomplete -e arguments gracefully[0m
+  [32m  ✔[0m[90m should not combine -e args when second is not an extras specification[0m
+  [32m  ✔[0m[90m should handle extras with multiple requirements[0m
+  [32m  ✔[0m[90m should handle Windows-style paths correctly[0m
+  [32m  ✔[0m[90m should handle editable installs followed by other args[0m
+
+[0m  Pip List Parser tests[0m
+  [32m  ✔[0m[90m Test parsing pip list output piplist1[0m
+  [32m  ✔[0m[90m Test parsing pip list output piplist2[0m
+  [32m  ✔[0m[90m Test parsing pip list output piplist3[0m
+
+[0m  Pip Utils - getProjectInstallable[0m
+  [32m  ✔[0m[90m should find dev-requirements.txt at workspace root[0m
+  [32m  ✔[0m[90m should deduplicate files found by multiple patterns[0m
+  [32m  ✔[0m[90m should find requirements files in subdirectories[0m
+  [32m  ✔[0m[90m should return empty array when no projects provided[0m
+  [32m  ✔[0m[90m should filter out files not in project directories[0m
+
+[0m  venvUtils UV Environment Tracking[0m
+  [32m  ✔[0m[90m should return empty array when no UV environments have been stored[0m
+  [32m  ✔[0m[90m should return previously stored UV environments[0m
+  [32m  ✔[0m[90m should add new environment to tracking list[0m
+  [32m  ✔[0m[90m should ignore duplicate environment additions[0m
+  [32m  ✔[0m[90m should remove specified environment from tracking list[0m
+  [32m  ✔[0m[90m should clear all tracked UV environments[0m
+  [32m  ✔[0m[90m should include UV environments when clearing venv cache[0m
+
+[0m  getAllExtraSearchPaths Integration Tests[0m
+[0m    Legacy Path Consolidation Tests[0m
+    [32m  ✔[0m[90m No legacy settings exist - returns empty paths[0m
+    [32m  ✔[0m[90m Legacy and global paths are consolidated[0m
+    [32m  ✔[0m[90m Legacy paths included alongside new settings[0m
+    [32m  ✔[0m[90m Legacy and global paths combined with deduplication[0m
+    [32m  ✔[0m[90m Legacy paths with untildify support[0m
+[0m    Configuration Source Tests[0m
+    [32m  ✔[0m[90m Global search paths with tilde expansion[0m
+    [32m  ✔[0m[90m Workspace folder setting preferred over workspace setting[0m
+    [32m  ✔[0m[90m Global workspace setting logs error and is ignored[0m
+    [32m  ✔[0m[90m Configuration read errors return empty arrays[0m
+[0m    Path Resolution Tests[0m
+    [32m  ✔[0m[90m Absolute paths used as-is[0m
+    [32m  ✔[0m[90m Relative paths resolved against workspace folders[0m
+    [32m  ✔[0m[90m Relative paths without workspace folders logs warning[0m
+    [32m  ✔[0m[90m Empty and whitespace paths are skipped[0m
+[0m    Integration Scenarios[0m
+    [32m  ✔[0m[90m Fresh install - no settings configured[0m
+    [32m  ✔[0m[90m Power user - complex mix of all source types[0m
+    [32m  ✔[0m[90m Overlapping paths are deduplicated[0m
+    [32m  ✔[0m[90m All path types consolidated together[0m
+
+[0m  CondaPackageManager Unit Tests[0m
+[0m    getChanges function[0m
+    [32m  ✔[0m[90m should detect package additions when refreshing empty environment[0m
+    [32m  ✔[0m[90m should detect package removals when packages are uninstalled[0m
+    [32m  ✔[0m[90m should detect both package additions and removals when packages change[0m
+[0m    CondaPackageManager.manage[0m
+    [32m  ✔[0m[90m should install packages when install list provided[0m
+    [32m  ✔[0m[90m should uninstall packages when uninstall list provided[0m
+    [32m  ✔[0m[90m should prompt user for packages when none specified[0m
+    [32m  ✔[0m[90m should not install when user cancels package selection[0m
+    [32m  ✔[0m[90m should emit onDidChangePackages event after successful package management[0m
+    [32m  ✔[0m[90m should log errors when package management fails[0m
+    [32m  ✔[0m[90m should re-throw CancellationError without logging[0m
+[0m    CondaPackageManager.refresh[0m
+    [32m  ✔[0m[90m should fetch packages and update internal cache[0m
+    [32m  ✔[0m[90m should emit onDidChangePackages event when packages are modified[0m
+    [32m  ✔[0m[90m should not emit event when package list remains unchanged[0m
+[0m    CondaPackageManager.getPackages[0m
+    [32m  ✔[0m[90m should use cached packages when available[0m
+    [32m  ✔[0m[90m should trigger refresh when packages not in cache[0m
+    [32m  ✔[0m[90m should maintain separate package caches for different environments[0m
+[0m    CondaPackageManager.dispose[0m
+    [32m  ✔[0m[90m should clean up event emitter on disposal[0m
+    [32m  ✔[0m[90m should clear all cached packages on disposal[0m
+[0m    Event emission[0m
+    [32m  ✔[0m[90m should include environment, manager, and changes in emitted event[0m
+    [32m  ✔[0m[90m should notify all registered listeners when event fires[0m
+    [32m  ✔[0m[90m should provide detailed package change information in event[0m
+
+
+[92m [0m[32m 261 passing[0m[90m (357ms)[0m
+[36m [0m[36m 1 pending[0m
+
+---------------------------------------|---------|----------|---------|---------|-------------------
+File                                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+---------------------------------------|---------|----------|---------|---------|-------------------
+All files                              |    9.28 |     67.1 |   17.64 |    9.28 |                   
+ terminal                              |   12.74 |    71.42 |   17.39 |   12.74 |                   
+  activateMenuButton.ts                |       0 |        0 |       0 |       0 | 1-18              
+  runInTerminal.ts                     |   16.98 |      100 |       0 |   16.98 | 10-53             
+  ...rtupActivationVariablesManager.ts |       0 |        0 |       0 |       0 | 1-111             
+  shellStartupSetupHandlers.ts         |       0 |        0 |       0 |       0 | 1-70              
+  terminalActivationState.ts           |       0 |        0 |       0 |       0 | 1-287             
+  terminalEnvVarInjector.ts            |   38.13 |       75 |   42.85 |   38.13 | ...00-202,208-214 
+  terminalManager.ts                   |       0 |        0 |       0 |       0 | 1-451             
+  utils.ts                             |   33.44 |      100 |      10 |   33.44 | ...57-277,296-302 
+ terminal/shells                       |       0 |        0 |       0 |       0 |                   
+  providers.ts                         |       0 |        0 |       0 |       0 | 1-45              
+  startupProvider.ts                   |       0 |        0 |       0 |       0 | 1-30              
+  utils.ts                             |       0 |        0 |       0 |       0 | 1-18              
+ terminal/shells/bash                  |       0 |        0 |       0 |       0 |                   
+  bashConstants.ts                     |       0 |        0 |       0 |       0 | 1-5               
+  bashEnvs.ts                          |       0 |        0 |       0 |       0 | 1-96              
+  bashStartup.ts                       |       0 |        0 |       0 |       0 | 1-310             
+ terminal/shells/cmd                   |       0 |        0 |       0 |       0 |                   
+  cmdConstants.ts                      |       0 |        0 |       0 |       0 | 1-2               
+  cmdEnvs.ts                           |       0 |        0 |       0 |       0 | 1-50              
+  cmdStartup.ts                        |       0 |        0 |       0 |       0 | 1-319             
+ terminal/shells/common                |   45.64 |       90 |   38.46 |   45.64 |                   
+  editUtils.ts                         |   97.43 |    88.88 |     100 |   97.43 | 69-70             
+  shellUtils.ts                        |   20.85 |      100 |   11.11 |   20.85 | ...31-134,137-163 
+ terminal/shells/fish                  |       0 |        0 |       0 |       0 |                   
+  fishConstants.ts                     |       0 |        0 |       0 |       0 | 1-3               
+  fishEnvs.ts                          |       0 |        0 |       0 |       0 | 1-50              
+  fishStartup.ts                       |       0 |        0 |       0 |       0 | 1-166             
+ terminal/shells/pwsh                  |       0 |        0 |       0 |       0 |                   
+  pwshConstants.ts                     |       0 |        0 |       0 |       0 | 1-3               
+  pwshEnvs.ts                          |       0 |        0 |       0 |       0 | 1-51              
+  pwshStartup.ts                       |       0 |        0 |       0 |       0 | 1-357             
+---------------------------------------|---------|----------|---------|---------|-------------------
