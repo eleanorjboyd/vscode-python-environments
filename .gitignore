@@ -6,3 +6,5 @@ node_modules
 .nox/
 .venv/
 **/__pycache__/
+coverage/
+.nyc_output/
