@@ -229,8 +229,8 @@ suite('CondaPackageManager Unit Tests', () => {
             getCommonCondaPackagesToInstallStub.resolves({ install: ['pytest'], uninstall: [] });
             managePackagesStub.resolves(packages);
 
-            // Run - Execute manage without packages
-            await packageManager.manage(env, {} as any);
+            // Run - Execute manage without packages (empty install array triggers prompt)
+            await packageManager.manage(env, { install: [] });
 
             // Assert - Verify user was prompted
             assert.ok(getCommonCondaPackagesToInstallStub.called, 'Should prompt user for packages');
@@ -249,8 +249,8 @@ suite('CondaPackageManager Unit Tests', () => {
                 return await callback({} as Progress<{ message?: string }>, {} as CancellationToken);
             });
 
-            // Run - Execute manage without packages (user cancels)
-            await packageManager.manage(env, {} as any);
+            // Run - Execute manage without packages (user cancels, empty install array triggers prompt)
+            await packageManager.manage(env, { install: [] });
 
             // Assert - Verify operation was cancelled
             assert.ok(getCommonCondaPackagesToInstallStub.called, 'Should prompt user');
