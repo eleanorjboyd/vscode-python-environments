@@ -22,6 +22,11 @@ interface InvalidProjectEntry {
  * @returns An error message if invalid, undefined if valid
  */
 function validateProjectEntry(entry: PythonProjectSettings): string | undefined {
+    // Check if entry is a valid object (not a string, array, null, or other primitive)
+    if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) {
+        return l10n.t('Invalid entry format: expected object');
+    }
+
     // Check if required fields exist
     if (!entry.path) {
         return l10n.t('Missing required field: path');
@@ -33,11 +38,6 @@ function validateProjectEntry(entry: PythonProjectSettings): string | undefined 
 
     if (!entry.packageManager) {
         return l10n.t('Missing required field: packageManager');
-    }
-
-    // Check if entry is a valid object (not a string or other primitive)
-    if (typeof entry !== 'object') {
-        return l10n.t('Invalid entry format: expected object');
     }
 
     return undefined;
