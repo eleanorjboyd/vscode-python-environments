@@ -16,6 +16,7 @@ import {
     getDefaultEnvManagerSetting,
     getDefaultPkgManagerSetting,
 } from './settings/settingHelpers';
+import { validateAndNotifyPythonProjectsSettings } from './settings/settingsValidation';
 
 type ProjectArray = PythonProject[];
 
@@ -30,6 +31,12 @@ export class PythonProjectManagerImpl implements PythonProjectManager {
 
     initialize(): void {
         this.add(this.getInitialProjects());
+        
+        // Validate pythonProjects settings on initialization
+        validateAndNotifyPythonProjectsSettings().catch(() => {
+            // Error is already logged in the validation function
+        });
+        
         this.disposables.push(
             this._onDidChangeProjects,
             new Disposable(() => this._projects.clear()),
@@ -43,6 +50,13 @@ export class PythonProjectManagerImpl implements PythonProjectManager {
                     e.affectsConfiguration('python-envs.defaultPackageManager')
                 ) {
                     this.updateDebounce.trigger();
+                    
+                    // Validate settings when pythonProjects configuration changes
+                    if (e.affectsConfiguration('python-envs.pythonProjects')) {
+                        validateAndNotifyPythonProjectsSettings().catch(() => {
+                            // Error is already logged in the validation function
+                        });
+                    }
                 }
             }),
         );
@@ -65,8 +79,19 @@ export class PythonProjectManagerImpl implements PythonProjectManager {
                 newProjects.push(new PythonProjectsImpl(w.name, w.uri));
             }
 
+            // Validate that overrides is an array
+            if (!Array.isArray(overrides)) {
+                // Skip processing if the setting is invalid
+                continue;
+            }
+
             // For each override, resolve its path and add as a project if not already present
             for (const o of overrides) {
+                // Skip invalid entries (missing required fields)
+                if (!o || typeof o !== 'object' || !o.path || !o.envManager || !o.packageManager) {
+                    continue;
+                }
+                
                 let uriFromWorkspace: Uri | undefined = undefined;
                 // if override has a workspace property, resolve the path relative to that workspace
                 if (o.workspace) {
