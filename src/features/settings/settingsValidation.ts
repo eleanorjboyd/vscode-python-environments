@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-import { ConfigurationTarget, l10n, Uri, workspace } from 'vscode';
+import { commands, ConfigurationTarget, l10n, Uri, workspace } from 'vscode';
 import { traceError, traceWarn } from '../../common/logging';
 import { getGlobalPersistentState } from '../../common/persistentState';
 import { showWarningMessage } from '../../common/window.apis';
@@ -160,10 +160,8 @@ export async function notifyInvalidPythonProjectsSettings(invalidEntries: Invali
             await showWarningMessage(l10n.t('Failed to remove invalid entries. Please check the logs for details.'));
         }
     } else if (choice === openSettingsOption) {
-        // Open settings for the user to manually fix
-        await workspace
-            .getConfiguration('python-envs')
-            .update('pythonProjects', undefined, ConfigurationTarget.WorkspaceFolder, false);
+        // Open settings UI to the pythonProjects setting
+        await commands.executeCommand('workbench.action.openSettings', '@ext:ms-python.vscode-python-envs pythonProjects');
     } else if (choice === dontShowOption) {
         // Save preference to not show again
         await persistentState.set(DONT_SHOW_INVALID_SETTINGS_KEY, true);

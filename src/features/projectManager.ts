@@ -34,7 +34,7 @@ export class PythonProjectManagerImpl implements PythonProjectManager {
         
         // Validate pythonProjects settings on initialization
         validateAndNotifyPythonProjectsSettings().catch(() => {
-            // Error is already logged in the validation function
+            // Error logging handled in validation function
         });
         
         this.disposables.push(
@@ -54,7 +54,7 @@ export class PythonProjectManagerImpl implements PythonProjectManager {
                     // Validate settings when pythonProjects configuration changes
                     if (e.affectsConfiguration('python-envs.pythonProjects')) {
                         validateAndNotifyPythonProjectsSettings().catch(() => {
-                            // Error is already logged in the validation function
+                            // Error logging handled in validation function
                         });
                     }
                 }
