@@ -25,7 +25,7 @@ interface MockPersistentState {
     clear: sinon.SinonStub;
 }
 
-suite('Settings Validation Tests', () => {
+suite('pythonProjects Settings Validation', () => {
     let mockGetConfiguration: sinon.SinonStub;
     let mockGetWorkspaceFolders: sinon.SinonStub;
     let mockShowWarningMessage: sinon.SinonStub;
@@ -57,7 +57,7 @@ suite('Settings Validation Tests', () => {
         sinon.restore();
     });
 
-    suite('validatePythonProjectsSettings', () => {
+    suite('Valid Settings Scenarios', () => {
         test('should return empty array when no workspaces exist', () => {
             // Mock → No workspaces
             mockGetWorkspaceFolders.returns([]);
@@ -89,7 +89,7 @@ suite('Settings Validation Tests', () => {
             assert.strictEqual(result.length, 0, 'Should return empty array for valid empty settings');
         });
 
-        test('should return empty array when all entries are valid', () => {
+        test('should pass with valid entries containing all required fields', () => {
             // Mock → Valid pythonProjects entries
             const workspaceUri = Uri.file('/workspace');
             mockGetWorkspaceFolders.returns([{ name: 'test-workspace', uri: workspaceUri, index: 0 }]);
@@ -121,7 +121,9 @@ suite('Settings Validation Tests', () => {
             // Assert
             assert.strictEqual(result.length, 0, 'Should return empty array when all entries are valid');
         });
+    });
 
+    suite('Invalid Entry Detection', () => {
         test('should detect missing path field', () => {
             // Mock → Entry missing path field
             const workspaceUri = Uri.file('/workspace');
@@ -282,8 +284,8 @@ suite('Settings Validation Tests', () => {
         });
     });
 
-    suite('notifyInvalidPythonProjectsSettings', () => {
-        test('should not show notification when no invalid entries', async () => {
+    suite('User Notification Behavior', () => {
+        test('should not show notification when no invalid entries exist', async () => {
             // Mock → No invalid entries
             const invalidEntries: never[] = [];
 
@@ -298,7 +300,7 @@ suite('Settings Validation Tests', () => {
             );
         });
 
-        test('should not show notification when user chose "don\'t show again"', async () => {
+        test('should respect user preference to suppress notifications', async () => {
             // Mock → User previously selected "don't show again"
             mockPersistentState.get.resolves(true);
 
@@ -321,7 +323,7 @@ suite('Settings Validation Tests', () => {
             );
         });
 
-        test('should show notification with correct message for single invalid entry', async () => {
+        test('should display singular message for one invalid entry', async () => {
             // Mock → One invalid entry
             const invalidEntries = [
                 {
@@ -345,7 +347,7 @@ suite('Settings Validation Tests', () => {
             );
         });
 
-        test('should show notification with correct message for multiple invalid entries', async () => {
+        test('should display plural message with count for multiple invalid entries', async () => {
             // Mock → Multiple invalid entries
             const invalidEntries = [
                 {
@@ -372,7 +374,7 @@ suite('Settings Validation Tests', () => {
             assert.ok(message.includes('entries'), 'Message should be plural for multiple entries');
         });
 
-        test('should save preference when user selects "don\'t show again"', async () => {
+        test('should persist user choice to suppress future notifications', async () => {
             // Mock → User selects "don't show again"
             const invalidEntries = [
                 {
@@ -398,8 +400,8 @@ suite('Settings Validation Tests', () => {
         });
     });
 
-    suite('validateAndNotifyPythonProjectsSettings', () => {
-        test('should validate and notify when invalid entries exist', async () => {
+    suite('End-to-End Validation Flow', () => {
+        test('should detect invalid entries and show notification', async () => {
             // Mock → Invalid entry exists
             const workspaceUri = Uri.file('/workspace');
             mockGetWorkspaceFolders.returns([{ name: 'test-workspace', uri: workspaceUri, index: 0 }]);
@@ -428,7 +430,7 @@ suite('Settings Validation Tests', () => {
             assert.strictEqual(mockShowWarningMessage.callCount, 1, 'Should show notification');
         });
 
-        test('should not notify when all entries are valid', async () => {
+        test('should skip notification when all entries are valid', async () => {
             // Mock → All valid entries
             const workspaceUri = Uri.file('/workspace');
             mockGetWorkspaceFolders.returns([{ name: 'test-workspace', uri: workspaceUri, index: 0 }]);
