@@ -576,4 +576,3 @@ envConfig.inspect
 ## 🧠 Agent Learnings
 -   Avoid testing exact error messages or log output - assert only that errors are thrown or rejection occurs to prevent brittle tests (1)
 -   Create shared mock helpers (e.g., `createMockLogOutputChannel()`) instead of duplicating mock setup across multiple test files (1)
-
