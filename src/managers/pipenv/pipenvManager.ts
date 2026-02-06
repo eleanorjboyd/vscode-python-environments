@@ -1,3 +1,4 @@
+import * as path from 'path';
 import { EventEmitter, MarkdownString, ProgressLocation, Uri } from 'vscode';
 import {
     DidChangeEnvironmentEventArgs,
@@ -49,7 +50,10 @@ export class PipenvManager implements EnvironmentManager {
 
     private _initialized: Deferred<void> | undefined;
 
-    constructor(public readonly nativeFinder: NativePythonFinder, public readonly api: PythonEnvironmentApi) {
+    constructor(
+        public readonly nativeFinder: NativePythonFinder,
+        public readonly api: PythonEnvironmentApi,
+    ) {
         this.name = 'pipenv';
         this.displayName = 'Pipenv';
         this.preferredPackageManagerId = 'ms-python.python:pip';
@@ -93,7 +97,14 @@ export class PipenvManager implements EnvironmentManager {
         for (const project of projects) {
             const envPath = await getPipenvForWorkspace(project.uri.fsPath);
             if (envPath) {
-                const env = this.findEnvironmentByPath(envPath);
+                let env = this.findEnvironmentByPath(envPath);
+                // If not found in collection, try to resolve the path
+                if (!env) {
+                    env = await resolvePipenvPath(envPath, this.nativeFinder, this.api, this);
+                    if (env) {
+                        this.collection.push(env);
+                    }
+                }
                 if (env) {
                     this.fsPathToEnv.set(project.uri.fsPath, env);
                 }
@@ -104,13 +115,23 @@ export class PipenvManager implements EnvironmentManager {
         const globalEnvPath = await getPipenvForGlobal();
         if (globalEnvPath) {
             this.globalEnv = this.findEnvironmentByPath(globalEnvPath);
+            // If not found in collection, try to resolve the path
+            if (!this.globalEnv) {
+                this.globalEnv = await resolvePipenvPath(globalEnvPath, this.nativeFinder, this.api, this);
+                if (this.globalEnv) {
+                    this.collection.push(this.globalEnv);
+                }
+            }
         }
     }
 
     private findEnvironmentByPath(fsPath: string): PythonEnvironment | undefined {
-        return this.collection.find(
-            (env) => env.environmentPath.fsPath === fsPath || env.execInfo?.run.executable === fsPath,
-        );
+        const normalized = path.normalize(fsPath);
+        return this.collection.find((env) => {
+            const envPath = path.normalize(env.environmentPath.fsPath);
+            const execPath = env.execInfo?.run.executable ? path.normalize(env.execInfo.run.executable) : undefined;
+            return envPath === normalized || execPath === normalized;
+        });
     }
 
     async refresh(scope: RefreshEnvironmentsScope): Promise<void> {
