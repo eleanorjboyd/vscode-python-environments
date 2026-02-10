@@ -21,13 +21,20 @@ export async function isUvInstalled(log?: LogOutputChannel): Promise<boolean> {
     }
     log?.info(`Running: uv --version`);
     const proc = spawnProcess('uv', ['--version']);
-    proc.on('error', () => {
+    proc.on('error', (err) => {
+        log?.warn(
+            `uv not found or failed to run (${err.message}). Falling back to pip. If uv is installed, ensure it is in your PATH and restart VS Code.`,
+        );
         available.resolve(false);
     });
     proc.stdout?.on('data', (d) => log?.info(d.toString()));
     proc.on('exit', (code) => {
         if (code === 0) {
             sendTelemetryEvent(EventNames.VENV_USING_UV);
+        } else {
+            log?.warn(
+                `uv --version exited with code ${code}. Falling back to pip. If uv is installed, ensure it is in your PATH and restart VS Code.`,
+            );
         }
         available.resolve(code === 0);
     });
