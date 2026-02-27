@@ -59,7 +59,7 @@ tools:
 - `src/managers/` — Environment manager implementations (venv, conda, poetry, pipenv, pyenv, pixi, uv)
 - `src/features/` — Core features (terminal, settings, views, execution)
 - `src/common/` — Shared utilities and APIs
-- `analysis/` — Python scripts for codebase health snapshots
+- `code-analysis/` — Python scripts for codebase health snapshots
 
 ---
 
@@ -283,12 +283,12 @@ Review complete when:
 
 # Quick Reference Commands
 
-| Task              | Command                                                |
-| ----------------- | ------------------------------------------------------ |
-| Unit tests        | `npm run unittest`                                     |
-| Lint              | `npm run lint`                                         |
-| Type check        | `npm run compile-tests`                                |
-| Build extension   | `npm run compile`                                      |
-| Smoke tests       | `npm run compile && npm run smoke-test`                |
-| Generate snapshot | `cd analysis && python snapshot.py -o ./snapshot.json` |
-| Package VSIX      | `npm run vsce-package`                                 |
+| Task              | Command                                                              |
+| ----------------- | -------------------------------------------------------------------- |
+| Unit tests        | `npm run unittest`                                                   |
+| Lint              | `npm run lint`                                                       |
+| Type check        | `npm run compile-tests`                                              |
+| Build extension   | `npm run compile`                                                    |
+| Smoke tests       | `npm run compile && npm run smoke-test`                              |
+| Generate snapshot | `cd code-analysis && python -m analysis.snapshot -o ./snapshot.json` |
+| Package VSIX      | `npm run vsce-package`                                               |

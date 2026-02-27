@@ -6,7 +6,7 @@ argument-hint: '--output path --pretty'
 
 # Generate Codebase Snapshot
 
-This skill generates a comprehensive code health snapshot using the analysis modules in `analysis/`.
+This skill generates a comprehensive code health snapshot using the analysis modules in `code-analysis/analysis/`.
 
 ## When to Use
 

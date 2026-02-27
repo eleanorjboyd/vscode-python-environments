@@ -1,0 +1,13 @@
+pyproject.toml
+analysis/__init__.py
+analysis/complexity_analysis.py
+analysis/debt_indicators.py
+analysis/dependency_analysis.py
+analysis/file_discovery.py
+analysis/git_analysis.py
+analysis/snapshot.py
+analysis.egg-info/PKG-INFO
+analysis.egg-info/SOURCES.txt
+analysis.egg-info/dependency_links.txt
+analysis.egg-info/requires.txt
+analysis.egg-info/top_level.txt
