@@ -1,4 +1,6 @@
 import assert from 'assert';
+import * as fse from 'fs-extra';
+import * as os from 'os';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import { CancellationToken, Progress, ProgressOptions, Uri } from 'vscode';
@@ -198,5 +200,188 @@ suite('Pip Utils - getProjectInstallable', () => {
         assert.strictEqual(firstResult.name, 'requirements.txt');
         assert.ok(firstResult.uri, 'Should have a URI');
         assert.ok(firstResult.uri.fsPath.startsWith(workspacePath), 'Should be in workspace directory');
+    });
+});
+
+suite('Pip Utils - getProjectInstallable (pyproject.toml parsing)', () => {
+    let findFilesStub: sinon.SinonStub;
+    let withProgressStub: sinon.SinonStub;
+    let mockApi: { getPythonProject: (uri: Uri) => PythonProject | undefined };
+    let tmpDir: string;
+
+    setup(async () => {
+        // Create a temporary directory with a fake workspace and pyproject.toml
+        tmpDir = await fse.mkdtemp(path.join(os.tmpdir(), 'pyproject-toml-test-'));
+
+        findFilesStub = sinon.stub(wapi, 'findFiles');
+        withProgressStub = sinon.stub(winapi, 'withProgress');
+        withProgressStub.callsFake(
+            async (
+                _options: ProgressOptions,
+                callback: (
+                    progress: Progress<{ message?: string; increment?: number }>,
+                    token: CancellationToken,
+                ) => Thenable<unknown>,
+            ) => {
+                return await callback(
+                    {} as Progress<{ message?: string; increment?: number }>,
+                    { isCancellationRequested: false } as CancellationToken,
+                );
+            },
+        );
+
+        mockApi = {
+            getPythonProject: (uri: Uri) => {
+                if (uri.fsPath.startsWith(tmpDir)) {
+                    return { name: 'workspace', uri: Uri.file(tmpDir) };
+                }
+                return undefined;
+            },
+        };
+    });
+
+    teardown(async () => {
+        sinon.restore();
+        await fse.remove(tmpDir);
+    });
+
+    /**
+     * Writes a pyproject.toml with the given content to the temp dir,
+     * stubs findFiles so only that file is returned, and calls getProjectInstallable.
+     */
+    async function runWithTomlContent(
+        content: string,
+    ): Promise<Awaited<ReturnType<typeof getProjectInstallable>>> {
+        const tomlPath = path.join(tmpDir, 'pyproject.toml');
+        await fse.writeFile(tomlPath, content, 'utf-8');
+
+        findFilesStub.callsFake((pattern: string) => {
+            if (pattern === '**/pyproject.toml') {
+                return Promise.resolve([Uri.file(tomlPath)]);
+            }
+            return Promise.resolve([]);
+        });
+
+        const projects = [{ name: 'workspace', uri: Uri.file(tmpDir) }];
+        return getProjectInstallable(mockApi as PythonEnvironmentApi, projects);
+    }
+
+    test('should parse a valid pyproject.toml with LF line endings', async () => {
+        const content =
+            '[build-system]\nrequires = ["setuptools"]\nbuild-backend = "setuptools.build_meta"\n\n[project]\nname = "mypackage"\nversion = "1.0.0"\n';
+
+        const result = await runWithTomlContent(content);
+
+        assert.strictEqual(result.installables.length, 1, 'Should find one TOML installable');
+        assert.strictEqual(result.installables[0].group, 'TOML', 'Should be in TOML group');
+        assert.strictEqual(result.validationError, undefined, 'Should not have validation error');
+    });
+
+    test('should parse a valid pyproject.toml with CRLF line endings (Windows-style)', async () => {
+        // This is the core regression test for issue #25809.
+        // The @iarna/toml parser rejects \r as a control character in comments,
+        // so we must normalize CRLF → LF before parsing.
+        const content =
+            '[build-system]\r\nrequires = ["setuptools"]\r\nbuild-backend = "setuptools.build_meta"\r\n\r\n[project]\r\nname = "mypackage"\r\nversion = "1.0.0"\r\n';
+
+        const result = await runWithTomlContent(content);
+
+        assert.strictEqual(result.installables.length, 1, 'Should find one TOML installable with CRLF');
+        assert.strictEqual(result.installables[0].group, 'TOML', 'Should be in TOML group');
+        assert.strictEqual(result.validationError, undefined, 'Should not have validation error');
+    });
+
+    test('should parse a pyproject.toml with CRLF line endings and comments', async () => {
+        // Comments with \r caused "Control characters not allowed" errors in the TOML parser
+        const content =
+            '# This is a comment\r\n[build-system]\r\n# Another comment\r\nrequires = ["hatchling"]\r\nbuild-backend = "hatchling.build"\r\n\r\n# Project metadata\r\n[project]\r\nname = "my-package"\r\n';
+
+        const result = await runWithTomlContent(content);
+
+        assert.strictEqual(result.installables.length, 1, 'Should parse CRLF+comments successfully');
+        assert.strictEqual(result.validationError, undefined, 'Should not have validation error');
+    });
+
+    test('should return validation error for invalid package name in pyproject.toml', async () => {
+        // Spaces are not allowed in package names per PEP 508
+        const content =
+            '[build-system]\nrequires = ["setuptools"]\nbuild-backend = "setuptools.build_meta"\n\n[project]\nname = "my package"\n';
+
+        const result = await runWithTomlContent(content);
+
+        assert.strictEqual(result.installables.length, 1, 'Installable is still added even with validation error');
+        assert.ok(result.validationError, 'Should have validation error for invalid name');
+        assert.ok(result.validationError.message.includes('"my package"'), 'Error should mention the invalid name');
+    });
+
+    test('should not add installable when pyproject.toml has no [build-system] section', async () => {
+        // Without [build-system], the package cannot be pip-installed in editable mode
+        const content = '[project]\nname = "mypackage"\nversion = "1.0.0"\n';
+
+        const result = await runWithTomlContent(content);
+
+        assert.strictEqual(result.installables.length, 0, 'No installable without [build-system]');
+        assert.strictEqual(result.validationError, undefined, 'Should not have validation error');
+    });
+
+    test('should not add installable when pyproject.toml has no [project] section', async () => {
+        // Without [project], the package is not a PEP 621 project
+        const content = '[build-system]\nrequires = ["setuptools"]\nbuild-backend = "setuptools.build_meta"\n';
+
+        const result = await runWithTomlContent(content);
+
+        assert.strictEqual(result.installables.length, 0, 'No installable without [project]');
+        assert.strictEqual(result.validationError, undefined, 'Should not have validation error');
+    });
+
+    test('should add optional-dependency extras as separate installables', async () => {
+        const content =
+            '[build-system]\nrequires = ["setuptools"]\nbuild-backend = "setuptools.build_meta"\n\n[project]\nname = "mypackage"\n\n[project.optional-dependencies]\ndev = ["pytest", "black"]\ndocs = ["sphinx"]\n';
+
+        const result = await runWithTomlContent(content);
+
+        // Expect: base installable + 2 extras (dev, docs)
+        assert.strictEqual(result.installables.length, 3, 'Should have base + 2 optional dependency groups');
+        const names = result.installables.map((i) => i.name).sort();
+        assert.ok(names.includes('dev'), 'Should include dev extras');
+        assert.ok(names.includes('docs'), 'Should include docs extras');
+        assert.ok(
+            result.installables.every((i) => i.group === 'TOML'),
+            'All installables should be in TOML group',
+        );
+    });
+
+    test('should handle unparseable pyproject.toml gracefully (no crash)', async () => {
+        // Completely invalid TOML content should be silently ignored
+        const content = 'this is not valid toml @@@ ###';
+
+        const result = await runWithTomlContent(content);
+
+        assert.strictEqual(result.installables.length, 0, 'Should return empty on parse failure');
+        assert.strictEqual(result.validationError, undefined, 'Should not report validation error on parse failure');
+    });
+
+    test('should return validation error for missing build-system requires field', async () => {
+        // PEP 518 requires the 'requires' key in [build-system]
+        const content =
+            '[build-system]\nbuild-backend = "setuptools.build_meta"\n\n[project]\nname = "mypackage"\n';
+
+        const result = await runWithTomlContent(content);
+
+        assert.ok(result.validationError, 'Should have validation error for missing requires');
+        assert.ok(result.validationError.message.includes('"requires"'), 'Error should mention the requires field');
+    });
+
+    test('should use editable install args (-e) for TOML installable', async () => {
+        const content =
+            '[build-system]\nrequires = ["setuptools"]\nbuild-backend = "setuptools.build_meta"\n\n[project]\nname = "mypackage"\n';
+
+        const result = await runWithTomlContent(content);
+
+        const installable = result.installables[0];
+        assert.ok(installable, 'Should have an installable');
+        assert.ok(installable.args, 'Should have args');
+        assert.strictEqual(installable.args?.[0], '-e', 'First arg should be -e for editable install');
+        assert.strictEqual(installable.args?.[1], tmpDir, 'Second arg should be the project directory');
     });
 });
