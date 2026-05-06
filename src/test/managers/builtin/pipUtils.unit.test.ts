@@ -201,16 +201,18 @@ suite('Pip Utils - getProjectInstallable', () => {
     });
 
     test('should sort shallower files before deeper ones', async () => {
-        // Arrange: Return files at different depths, with deeper ones discovered first
+        // Arrange: Use the shared workspacePath from setup() so paths are platform-safe.
+        const workspacePath = Uri.file('/test/path/root').fsPath;
+        const rootReqPath = path.join(workspacePath, 'requirements.txt');
+        const subdirReqPath = path.join(workspacePath, 'subdir', 'dev-requirements.txt');
+        const deepReqPath = path.join(workspacePath, 'deep', 'nested', 'sub', 'requirements.txt');
+
+        // Return files at different depths, with deeper ones discovered first.
         findFilesStub.callsFake((pattern: string) => {
-            const workspacePath = Uri.file('/test/path/root').fsPath;
             if (pattern === '**/*requirements*.txt') {
-                return Promise.resolve([
-                    Uri.file(path.join(workspacePath, 'deep', 'nested', 'sub', 'requirements.txt')),
-                    Uri.file(path.join(workspacePath, 'subdir', 'dev-requirements.txt')),
-                ]);
+                return Promise.resolve([Uri.file(deepReqPath), Uri.file(subdirReqPath)]);
             } else if (pattern === '*requirements*.txt') {
-                return Promise.resolve([Uri.file(path.join(workspacePath, 'requirements.txt'))]);
+                return Promise.resolve([Uri.file(rootReqPath)]);
             } else if (pattern === '**/requirements/*.txt') {
                 return Promise.resolve([]);
             } else if (pattern === '**/pyproject.toml') {
@@ -220,15 +222,16 @@ suite('Pip Utils - getProjectInstallable', () => {
         });
 
         // Act
-        const workspacePath = Uri.file('/test/path/root').fsPath;
         const projects = [{ name: 'workspace', uri: Uri.file(workspacePath) }];
         const result = (await getProjectInstallable(mockApi as PythonEnvironmentApi, projects)).installables;
 
-        // Assert: root-level requirements.txt should come first
+        // Assert: order by fsPath so the two `requirements.txt` files are unambiguous.
         assert.strictEqual(result.length, 3);
-        const names = result.map((r) => r.name);
-        assert.strictEqual(names[0], 'requirements.txt', 'Root-level requirements.txt should be first');
-        assert.strictEqual(names[1], 'dev-requirements.txt', 'One-level-deep file should be second');
-        assert.strictEqual(names[2], 'requirements.txt', 'Deeply nested file should be last');
+        const fsPaths = result.map((r) => r.uri!.fsPath);
+        assert.deepStrictEqual(
+            fsPaths,
+            [rootReqPath, subdirReqPath, deepReqPath],
+            'Files should be ordered by depth relative to the project root',
+        );
     });
 });
