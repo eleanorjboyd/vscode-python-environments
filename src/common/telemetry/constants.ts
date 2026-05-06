@@ -65,6 +65,9 @@ export enum EventNames {
      * the timer is cancelled and this event never fires.
      * Properties:
      * - failureStage: string (which phase was in progress when the watchdog fired)
+     * Measures:
+     * - duration: total elapsed since activation
+     * - stageDuration: elapsed in the current stage
      */
     SETUP_HANG_DETECTED = 'SETUP.HANG_DETECTED',
     /**
@@ -102,6 +105,14 @@ export enum EventNames {
      */
     ENV_SELECTION_RESULT = 'ENV_SELECTION.RESULT',
     /**
+     * Telemetry event fired when applyInitialEnvironmentSelection returns.
+     * Properties:
+     * - globalScopeDeferred: boolean (true = global scope fired in background)
+     * Measures:
+     * - duration, workspaceFolderCount, resolvedFolderCount, settingErrorCount
+     */
+    ENV_SELECTION_COMPLETED = 'ENV_SELECTION.COMPLETED',
+    /**
      * Telemetry event fired when a lazily-registered manager completes its first initialization.
      * Replaces MANAGER_REGISTRATION_SKIPPED and MANAGER_REGISTRATION_FAILED for managers
      * that now register unconditionally (pipenv, poetry, pyenv).
@@ -122,6 +133,51 @@ export enum EventNames {
      *           'miss' = no cached path, 'stale' = cached path found but resolve failed)
      */
     GLOBAL_ENV_CACHE = 'GLOBAL_ENV.CACHE',
+    /**
+     * Telemetry event fired when the JSON CLI fallback is used for environment discovery.
+     * Triggered when the PET JSON-RPC server mode is exhausted after all restart attempts.
+     * Properties:
+     * - operation: 'refresh' | 'resolve'
+     * - result: 'success' | 'error'
+     * - duration: number (milliseconds taken for the CLI operation)
+     */
+    PET_JSON_CLI_FALLBACK = 'PET.JSON_CLI_FALLBACK',
+    /**
+     * Telemetry event for a PET refresh attempt (the core discovery RPC call).
+     * Properties:
+     * - result: 'success' | 'timeout' | 'error'
+     * - envCount: number (environments returned via notifications)
+     * - unresolvedCount: number (envs that needed follow-up resolve calls)
+     * - workspaceDirCount: number (workspace directories sent in configure)
+     * - searchPathCount: number (extra search paths sent in configure)
+     * - attempt: number (0 = first try, 1 = retry)
+     * - errorType: string (classified error category, on failure only)
+     */
+    PET_REFRESH = 'PET.REFRESH',
+    /**
+     * Telemetry event for a PET configure RPC call.
+     * Properties:
+     * - result: 'success' | 'timeout' | 'error' | 'skipped'
+     * - workspaceDirCount: number
+     * - envDirCount: number (environmentDirectories count)
+     * - retryCount: number (consecutive timeout count from ConfigureRetryState)
+     */
+    PET_CONFIGURE = 'PET.CONFIGURE',
+    /**
+     * Telemetry event for PET process restart attempts.
+     * Properties:
+     * - attempt: number (1-based restart attempt number)
+     * - result: 'success' | 'error'
+     * - errorType: string (classified error category, on failure only)
+     */
+    PET_PROCESS_RESTART = 'PET.PROCESS_RESTART',
+    /**
+     * Telemetry event for PET resolve calls (single-env resolution).
+     * Properties:
+     * - result: 'success' | 'timeout' | 'error'
+     * - errorType: string (classified error category, on failure only)
+     */
+    PET_RESOLVE = 'PET.RESOLVE',
 }
 
 // Map all events to their properties
@@ -335,7 +391,8 @@ export interface IEventNamePropertyMapping {
     /* __GDPR__
         "setup.hang_detected": {
             "failureStage": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "StellaHuang95" },
-            "<duration>": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "StellaHuang95" }
+            "<duration>": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" },
+            "<stageDuration>": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" }
         }
     */
     [EventNames.SETUP_HANG_DETECTED]: {
@@ -396,6 +453,18 @@ export interface IEventNamePropertyMapping {
     };
 
     /* __GDPR__
+        "env_selection.completed": {
+            "globalScopeDeferred": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "eleanorjboyd" },
+            "workspaceFolderCount": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" },
+            "resolvedFolderCount": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" },
+            "settingErrorCount": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" }
+        }
+    */
+    [EventNames.ENV_SELECTION_COMPLETED]: {
+        globalScopeDeferred: boolean;
+    };
+
+    /* __GDPR__
         "manager.lazy_init": {
             "managerName": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "eleanorjboyd" },
             "result": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "eleanorjboyd" },
@@ -423,5 +492,81 @@ export interface IEventNamePropertyMapping {
     [EventNames.GLOBAL_ENV_CACHE]: {
         managerLabel: string;
         result: 'hit' | 'miss' | 'stale';
+    };
+
+    /* __GDPR__
+        "pet.json_cli_fallback": {
+            "operation": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "StellaHuang95" },
+            "result": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "StellaHuang95" },
+            "<duration>": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "StellaHuang95" }
+        }
+    */
+    [EventNames.PET_JSON_CLI_FALLBACK]: {
+        operation: 'refresh' | 'resolve';
+        result: 'success' | 'error';
+    };
+
+    /* __GDPR__
+        "pet.refresh": {
+            "result": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "eleanorjboyd" },
+            "envCount": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" },
+            "unresolvedCount": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" },
+            "workspaceDirCount": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" },
+            "searchPathCount": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" },
+            "attempt": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" },
+            "errorType": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "eleanorjboyd" },
+            "<duration>": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" }
+        }
+    */
+    [EventNames.PET_REFRESH]: {
+        result: 'success' | 'timeout' | 'error';
+        envCount?: number;
+        unresolvedCount?: number;
+        workspaceDirCount?: number;
+        searchPathCount?: number;
+        attempt: number;
+        errorType?: string;
+    };
+
+    /* __GDPR__
+        "pet.configure": {
+            "result": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "eleanorjboyd" },
+            "workspaceDirCount": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" },
+            "envDirCount": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" },
+            "retryCount": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" },
+            "<duration>": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" }
+        }
+    */
+    [EventNames.PET_CONFIGURE]: {
+        result: 'success' | 'timeout' | 'error' | 'skipped';
+        workspaceDirCount?: number;
+        envDirCount?: number;
+        retryCount: number;
+    };
+
+    /* __GDPR__
+        "pet.process_restart": {
+            "attempt": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" },
+            "result": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "eleanorjboyd" },
+            "errorType": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "eleanorjboyd" },
+            "<duration>": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" }
+        }
+    */
+    [EventNames.PET_PROCESS_RESTART]: {
+        attempt: number;
+        result: 'success' | 'error';
+        errorType?: string;
+    };
+
+    /* __GDPR__
+        "pet.resolve": {
+            "result": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "eleanorjboyd" },
+            "errorType": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "eleanorjboyd" },
+            "<duration>": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" }
+        }
+    */
+    [EventNames.PET_RESOLVE]: {
+        result: 'success' | 'timeout' | 'error';
+        errorType?: string;
     };
 }
