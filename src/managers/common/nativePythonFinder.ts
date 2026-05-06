@@ -237,6 +237,7 @@ class NativePythonFinderImpl implements NativePythonFinder {
     private startFailed: boolean = false;
     private restartAttempts: number = 0;
     private isRestarting: boolean = false;
+    private processExitReason: string | undefined = undefined;
     private readonly configureRetry = new ConfigureRetryState();
 
     constructor(
@@ -279,6 +280,8 @@ class NativePythonFinderImpl implements NativePythonFinder {
                     this.outputChannel.warn(`[pet] Resolve request ${reason}, killing process for restart`);
                     this.killProcess();
                     this.processExited = true;
+                    this.processExitReason =
+                        ex instanceof rpc.ConnectionError ? 'rpc_connection_error' : 'rpc_resolve_timeout';
                 }
                 throw ex;
             }
@@ -339,6 +342,7 @@ class NativePythonFinderImpl implements NativePythonFinder {
         this.isRestarting = true;
         this.restartAttempts++;
         const attempt = this.restartAttempts;
+        const triggerReason = this.processExitReason ?? (this.startFailed ? 'start_failed' : 'unknown');
 
         const backoffMs = RESTART_BACKOFF_BASE_MS * Math.pow(2, this.restartAttempts - 1);
         this.outputChannel.warn(
@@ -361,6 +365,7 @@ class NativePythonFinderImpl implements NativePythonFinder {
             // Reset state flags
             this.processExited = false;
             this.startFailed = false;
+            this.processExitReason = undefined;
             this.lastConfiguration = undefined; // Force reconfiguration
             this.configureRetry.reset();
 
@@ -368,7 +373,11 @@ class NativePythonFinderImpl implements NativePythonFinder {
             this.connection = this.start();
 
             this.outputChannel.info('[pet] Python Environment Tools restarted successfully');
-            sendTelemetryEvent(EventNames.PET_PROCESS_RESTART, sw.elapsedTime, { attempt, result: 'success' });
+            sendTelemetryEvent(EventNames.PET_PROCESS_RESTART, sw.elapsedTime, {
+                attempt,
+                result: 'success',
+                triggerReason,
+            });
 
             // Reset restart attempts on successful start (process didn't immediately fail)
             // We'll reset this only after a successful request completes
@@ -376,7 +385,7 @@ class NativePythonFinderImpl implements NativePythonFinder {
             sendTelemetryEvent(
                 EventNames.PET_PROCESS_RESTART,
                 sw.elapsedTime,
-                { attempt, result: 'error', errorType: classifyError(ex) },
+                { attempt, result: 'error', errorType: classifyError(ex), triggerReason },
                 ex instanceof Error ? ex : undefined,
             );
             this.outputChannel.error('[pet] Failed to restart Python Environment Tools:', ex);
@@ -520,15 +529,19 @@ class NativePythonFinderImpl implements NativePythonFinder {
             this.proc.on('exit', (code, signal) => {
                 this.processExited = true;
                 if (code !== 0) {
+                    this.processExitReason = `process_exit:${code ?? 'null'}:${signal ?? 'none'}`;
                     this.outputChannel.error(
                         `[pet] Python Environment Tools exited unexpectedly with code ${code}, signal ${signal}`,
                     );
+                } else {
+                    this.processExitReason = 'process_exit:0';
                 }
             });
 
             // Handle process errors (e.g., ENOENT if executable not found)
             this.proc.on('error', (err) => {
                 this.processExited = true;
+                this.processExitReason = 'process_error';
                 this.outputChannel.error('[pet] Process error:', err);
             });
 
@@ -626,6 +639,8 @@ class NativePythonFinderImpl implements NativePythonFinder {
                         // Kill and restart for retry
                         this.killProcess();
                         this.processExited = true;
+                        this.processExitReason =
+                            ex instanceof rpc.ConnectionError ? 'rpc_connection_error' : 'rpc_refresh_timeout';
                         continue;
                     }
                     // Final attempt failed
@@ -737,6 +752,8 @@ class NativePythonFinderImpl implements NativePythonFinder {
                 this.outputChannel.warn(`[pet] PET process ${reason}, killing for restart`);
                 this.killProcess();
                 this.processExited = true;
+                this.processExitReason =
+                    ex instanceof rpc.ConnectionError ? 'rpc_connection_error' : 'rpc_refresh_timeout';
             }
             this.outputChannel.error('[pet] Error refreshing', ex);
             throw ex;
@@ -806,6 +823,7 @@ class NativePythonFinderImpl implements NativePythonFinder {
                     );
                     this.killProcess();
                     this.processExited = true;
+                    this.processExitReason = 'rpc_configure_timeout';
                 } else {
                     this.outputChannel.warn(
                         `[pet] Configure request timed out (attempt ${this.configureRetry.timeoutCount}/${MAX_CONFIGURE_TIMEOUTS_BEFORE_KILL}), ` +

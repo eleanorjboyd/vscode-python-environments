@@ -553,6 +553,9 @@ export async function activate(context: ExtensionContext): Promise<PythonEnviron
     setImmediate(async () => {
         let failureStage = 'nativeFinder';
         const stageWatch = new StopWatch();
+        // Mutable ref so the hang watchdog can report whether global scope was deferred
+        // even if it fires mid-envSelection before applyInitialEnvironmentSelection returns.
+        const globalScopeDeferredRef: { value: boolean | undefined } = { value: undefined };
         // Watchdog: fires if setup hasn't completed within 120s, indicating a likely hang
         const SETUP_HANG_TIMEOUT_MS = 120_000;
         let hangWatchdogActive = true;
@@ -572,7 +575,7 @@ export async function activate(context: ExtensionContext): Promise<PythonEnviron
             sendTelemetryEvent(
                 EventNames.SETUP_HANG_DETECTED,
                 { duration: start.elapsedTime, stageDuration: stageWatch.elapsedTime },
-                { failureStage },
+                { failureStage, globalScopeDeferred: globalScopeDeferredRef.value },
             );
         }, SETUP_HANG_TIMEOUT_MS);
         context.subscriptions.push({ dispose: clearHangWatchdog });
@@ -618,7 +621,14 @@ export async function activate(context: ExtensionContext): Promise<PythonEnviron
 
             failureStage = 'envSelection';
             stageWatch.reset();
-            await applyInitialEnvironmentSelection(envManagers, projectManager, nativeFinder, api, start.elapsedTime);
+            await applyInitialEnvironmentSelection(
+                envManagers,
+                projectManager,
+                nativeFinder,
+                api,
+                start.elapsedTime,
+                globalScopeDeferredRef,
+            );
 
             // Register manager-agnostic terminal watcher for package-modifying commands
             failureStage = 'terminalWatcher';

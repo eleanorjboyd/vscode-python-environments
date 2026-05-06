@@ -391,12 +391,15 @@ export interface IEventNamePropertyMapping {
     /* __GDPR__
         "setup.hang_detected": {
             "failureStage": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "StellaHuang95" },
+            "globalScopeDeferred": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "eleanorjboyd" },
             "<duration>": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" },
             "<stageDuration>": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" }
         }
     */
     [EventNames.SETUP_HANG_DETECTED]: {
         failureStage: string;
+        /** Whether the global Python scope search was deferred to background at time of hang. undefined = hang fired before env-selection stage. */
+        globalScopeDeferred: boolean | undefined;
     };
 
     /* __GDPR__
@@ -549,6 +552,7 @@ export interface IEventNamePropertyMapping {
             "attempt": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" },
             "result": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "eleanorjboyd" },
             "errorType": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "eleanorjboyd" },
+            "triggerReason": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "owner": "eleanorjboyd" },
             "<duration>": { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true, "owner": "eleanorjboyd" }
         }
     */
@@ -556,6 +560,8 @@ export interface IEventNamePropertyMapping {
         attempt: number;
         result: 'success' | 'error';
         errorType?: string;
+        /** Why the PET process needed restarting: process_exit:<code>:<signal>, process_error, rpc_connection_error, rpc_refresh_timeout, rpc_resolve_timeout, rpc_configure_timeout, start_failed, or unknown */
+        triggerReason: string;
     };
 
     /* __GDPR__
