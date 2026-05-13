@@ -73,7 +73,10 @@ export function validatePyprojectToml(toml: PyprojectToml): string | undefined {
 async function tomlParse(fsPath: string, log?: LogOutputChannel): Promise<tomljs.JsonMap> {
     try {
         const content = await fse.readFile(fsPath, 'utf-8');
-        return tomljs.parse(content);
+        // Normalize CRLF to LF before parsing to handle Windows-style line endings.
+        // The TOML spec disallows control characters (including \r) in comments,
+        // so files with CRLF line endings would fail to parse otherwise.
+        return tomljs.parse(content.replace(/\r\n/g, '\n'));
     } catch (err) {
         log?.error('Failed to parse `pyproject.toml`:', err);
     }
